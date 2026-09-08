@@ -1,0 +1,698 @@
+@import "tailwindcss";
+
+:root {
+  --background: #070708;
+  --foreground: #f3eee5;
+  --muted: #a8a5ad;
+  --card: #111216;
+  --card-strong: #17181e;
+  --border: rgba(243, 238, 229, 0.13);
+  --brand: #ff715b;
+  --brand-dark: #e95c47;
+  --signal: #8c83ff;
+  --quiet: #777580;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--background);
+  color-scheme: dark;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 18% -10%, rgba(140, 131, 255, 0.14), transparent 34rem),
+    radial-gradient(circle at 90% 18%, rgba(255, 113, 91, 0.08), transparent 30rem),
+    var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+main {
+  min-height: calc(100vh - 74px);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgba(255, 113, 91, 0.55);
+  border-radius: 0.65rem;
+  background: var(--card-strong);
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 700;
+  transform: translateY(-180%);
+  transition: transform 160ms ease;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+:where(a, button, input, textarea, select):focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: rgba(255, 113, 91, 0.34);
+  color: var(--foreground);
+}
+
+.eyebrow {
+  color: var(--brand);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.brand-mark {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 1px solid rgba(255, 113, 91, 0.7);
+  border-radius: 0.75rem;
+  background: linear-gradient(145deg, rgba(255, 113, 91, 0.2), rgba(140, 131, 255, 0.16));
+  color: var(--foreground);
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.header-link,
+.header-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.header-link {
+  padding: 0 0.85rem;
+  color: var(--muted);
+}
+
+.header-link:hover {
+  background: rgba(243, 238, 229, 0.07);
+  color: var(--foreground);
+}
+
+.header-cta {
+  padding: 0 1rem;
+  background: var(--brand);
+  color: #070708;
+}
+
+.header-cta:hover {
+  background: #ff8976;
+  transform: translateY(-1px);
+}
+
+.profile-line,
+.profile-rule {
+  display: block;
+  height: 0.28rem;
+  border-radius: 999px;
+  background: rgba(243, 238, 229, 0.24);
+}
+
+.profile-line-wide {
+  width: 88%;
+}
+
+.profile-line-short {
+  width: 54%;
+}
+
+.profile-rule {
+  width: 100%;
+  height: 1px;
+  margin: 1.25rem 0 0.85rem;
+  background: rgba(243, 238, 229, 0.12);
+}
+
+.profile-chip {
+  display: inline-flex;
+  margin: 0.25rem 0.25rem 0 0;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid rgba(255, 113, 91, 0.28);
+  border-radius: 0.45rem;
+  background: rgba(255, 113, 91, 0.09);
+  color: #ffad9f;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.profile-chip-violet {
+  border-color: rgba(140, 131, 255, 0.28);
+  background: rgba(140, 131, 255, 0.1);
+  color: #bbb6ff;
+}
+
+/* Auth surfaces */
+.auth-page {
+  min-height: calc(100vh - 74px);
+  padding: clamp(2.75rem, 7vw, 6.5rem) clamp(1.25rem, 5vw, 5.5rem);
+}
+
+.auth-shell {
+  display: grid;
+  width: min(100%, 72rem);
+  min-height: 38rem;
+  margin: 0 auto;
+  grid-template-columns: minmax(0, 1fr) minmax(21rem, 28rem);
+  gap: clamp(2.5rem, 8vw, 8rem);
+  align-items: center;
+}
+
+.auth-story {
+  display: flex;
+  min-height: 38rem;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.auth-story-mark {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--foreground);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.auth-story-copy {
+  max-width: 34rem;
+  padding: 3.5rem 0 2rem;
+}
+
+.auth-story-title {
+  max-width: 11ch;
+  margin: 1.35rem 0 0;
+  color: var(--foreground);
+  font-size: clamp(2.7rem, 5vw, 5rem);
+  font-weight: 800;
+  letter-spacing: -0.065em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.auth-story-description {
+  max-width: 32rem;
+  margin: 1.7rem 0 0;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.auth-story-scan {
+  display: flex;
+  max-width: 31rem;
+  align-items: center;
+  gap: 1rem;
+  color: var(--quiet);
+  font-size: 0.76rem;
+}
+
+.scan-sheet {
+  position: relative;
+  display: flex;
+  width: 10rem;
+  min-width: 10rem;
+  height: 7.25rem;
+  flex-direction: column;
+  gap: 0.38rem;
+  overflow: hidden;
+  padding: 1rem;
+  border: 1px solid rgba(243, 238, 229, 0.14);
+  border-radius: 0.8rem;
+  background: linear-gradient(145deg, rgba(243, 238, 229, 0.1), rgba(243, 238, 229, 0.025));
+  transform: rotate(-3deg);
+}
+
+.scan-sheet-heading,
+.scan-sheet-line,
+.scan-sheet-rule {
+  display: block;
+  height: 0.28rem;
+  border-radius: 999px;
+  background: rgba(243, 238, 229, 0.32);
+}
+
+.scan-sheet-heading {
+  width: 42%;
+  height: 0.42rem;
+  margin-bottom: 0.15rem;
+  background: var(--brand);
+}
+
+.scan-sheet-line-wide {
+  width: 88%;
+}
+
+.scan-sheet-line-short {
+  width: 58%;
+}
+
+.scan-sheet-rule {
+  width: 100%;
+  height: 1px;
+  margin: 0.3rem 0;
+  background: rgba(243, 238, 229, 0.16);
+}
+
+.scan-beam {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: var(--brand);
+  box-shadow: 0 0 1.2rem rgba(255, 113, 91, 0.9);
+  animation: scan-beam 3.5s ease-in-out infinite;
+}
+
+.scan-caption {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.scan-caption-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--brand);
+  box-shadow: 0 0 0 0.25rem rgba(255, 113, 91, 0.1);
+}
+
+.auth-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38rem;
+}
+
+.auth-panel-inner {
+  width: 100%;
+}
+
+.auth-loading {
+  display: flex;
+  min-height: 26rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: rgba(17, 18, 22, 0.86);
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.auth-loading-orbit {
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 2px solid rgba(255, 113, 91, 0.25);
+  border-top-color: var(--brand);
+  border-radius: 999px;
+  animation: spin 900ms linear infinite;
+}
+
+.auth-setup-message {
+  width: 100%;
+  padding: 2rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--card);
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.24);
+}
+
+.auth-setup-message h1 {
+  margin: 0.85rem 0 0;
+  color: var(--foreground);
+  font-size: 1.45rem;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.auth-setup-message p {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.auth-setup-message code {
+  color: var(--foreground);
+  font-size: 0.82rem;
+}
+
+.auth-retry-button {
+  min-height: 2.6rem;
+  margin-top: 1.35rem;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #070708;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+  transition:
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+.auth-retry-button:hover {
+  background: #ff8976;
+  transform: translateY(-1px);
+}
+
+.auth-retry-button:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+
+.auth-degraded-message {
+  margin: 0 0 0.85rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+/* Clerk's prebuilt components inherit these classes through appearance.elements. */
+.resulens-clerk-root {
+  width: 100%;
+}
+
+.resulens-clerk-card {
+  width: 100%;
+  max-width: 28rem;
+  overflow: hidden;
+  border: 1px solid rgba(243, 238, 229, 0.14) !important;
+  border-radius: 1rem !important;
+  background: rgba(17, 18, 22, 0.96) !important;
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.38) !important;
+}
+
+.resulens-clerk-title {
+  color: var(--foreground) !important;
+  letter-spacing: -0.035em !important;
+}
+
+.resulens-clerk-subtitle,
+.resulens-clerk-footer-text,
+.resulens-clerk-divider-text {
+  color: var(--muted) !important;
+}
+
+.resulens-clerk-social-button {
+  border: 1px solid rgba(243, 238, 229, 0.14) !important;
+  background: rgba(243, 238, 229, 0.05) !important;
+  color: var(--foreground) !important;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease !important;
+}
+
+.resulens-clerk-social-button:hover {
+  border-color: rgba(243, 238, 229, 0.3) !important;
+  background: rgba(243, 238, 229, 0.09) !important;
+  transform: translateY(-1px);
+}
+
+.resulens-clerk-social-button-text {
+  color: var(--foreground) !important;
+}
+
+.resulens-clerk-divider-line {
+  background: rgba(243, 238, 229, 0.12) !important;
+}
+
+.resulens-clerk-label {
+  color: var(--foreground) !important;
+}
+
+.resulens-clerk-input {
+  border: 1px solid rgba(243, 238, 229, 0.16) !important;
+  background: #0b0c0f !important;
+  color: var(--foreground) !important;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease !important;
+}
+
+.resulens-clerk-input:focus {
+  border-color: var(--brand) !important;
+  box-shadow: 0 0 0 3px rgba(255, 113, 91, 0.16) !important;
+}
+
+.resulens-clerk-action,
+.resulens-clerk-footer-link {
+  color: var(--brand) !important;
+}
+
+.resulens-clerk-action:hover,
+.resulens-clerk-footer-link:hover {
+  color: #ff9a89 !important;
+}
+
+.resulens-clerk-primary-button {
+  border: 0 !important;
+  background: var(--brand) !important;
+  color: #070708 !important;
+  font-weight: 800 !important;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease !important;
+}
+
+.resulens-clerk-primary-button:hover {
+  background: #ff8976 !important;
+  box-shadow: 0 0.7rem 1.5rem rgba(255, 113, 91, 0.18) !important;
+  transform: translateY(-1px);
+}
+
+.resulens-clerk-error,
+.resulens-clerk-alert {
+  color: #ffad9f !important;
+}
+
+/* Clerk keeps its runtime class names stable while appearance.elements is loading. */
+.resulens-auth-panel .cl-rootBox {
+  width: 100%;
+}
+
+.resulens-auth-panel .cl-card {
+  width: 100%;
+  max-width: 28rem;
+  overflow: hidden;
+  border: 1px solid rgba(243, 238, 229, 0.14) !important;
+  border-radius: 1rem !important;
+  background: rgba(17, 18, 22, 0.96) !important;
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.38) !important;
+}
+
+.resulens-auth-panel .cl-headerTitle {
+  color: var(--foreground) !important;
+  letter-spacing: -0.035em !important;
+}
+
+.resulens-auth-panel .cl-headerSubtitle,
+.resulens-auth-panel .cl-footerActionText,
+.resulens-auth-panel .cl-dividerText {
+  color: var(--muted) !important;
+}
+
+.resulens-auth-panel .cl-socialButtonsBlockButton {
+  border: 1px solid rgba(243, 238, 229, 0.14) !important;
+  background: rgba(243, 238, 229, 0.05) !important;
+  color: var(--foreground) !important;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.resulens-auth-panel .cl-socialButtonsBlockButton:hover {
+  border-color: rgba(243, 238, 229, 0.3) !important;
+  background: rgba(243, 238, 229, 0.09) !important;
+  transform: translateY(-1px);
+}
+
+.resulens-auth-panel .cl-socialButtonsBlockButtonText {
+  color: var(--foreground) !important;
+}
+
+.resulens-auth-panel .cl-dividerLine {
+  background: rgba(243, 238, 229, 0.12) !important;
+}
+
+.resulens-auth-panel .cl-formFieldLabel {
+  color: var(--foreground) !important;
+}
+
+.resulens-auth-panel .cl-formFieldInput {
+  border: 1px solid rgba(243, 238, 229, 0.16) !important;
+  background: #0b0c0f !important;
+  color: var(--foreground) !important;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.resulens-auth-panel .cl-formFieldInput:focus {
+  border-color: var(--brand) !important;
+  box-shadow: 0 0 0 3px rgba(255, 113, 91, 0.16) !important;
+}
+
+.resulens-auth-panel .cl-formFieldInputShowPasswordButton {
+  color: var(--muted) !important;
+}
+
+.resulens-auth-panel .cl-formButtonPrimary {
+  border: 0 !important;
+  background: var(--brand) !important;
+  color: #070708 !important;
+  font-weight: 800 !important;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.resulens-auth-panel .cl-formButtonPrimary:hover {
+  background: #ff8976 !important;
+  box-shadow: 0 0.7rem 1.5rem rgba(255, 113, 91, 0.18) !important;
+  transform: translateY(-1px);
+}
+
+.resulens-auth-panel .cl-footerActionLink,
+.resulens-auth-panel .cl-formFieldAction {
+  color: var(--brand) !important;
+}
+
+.resulens-auth-panel .cl-footerActionLink:hover,
+.resulens-auth-panel .cl-formFieldAction:hover {
+  color: #ff9a89 !important;
+}
+
+.resulens-auth-panel .cl-formFieldErrorText,
+.resulens-auth-panel .cl-alert {
+  color: #ffad9f !important;
+}
+
+@keyframes scan-beam {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+
+  50% {
+    transform: translateY(6.2rem);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .auth-shell {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .auth-story {
+    min-height: auto;
+  }
+
+  .auth-story-copy {
+    padding: 2.5rem 0 1.5rem;
+  }
+
+  .auth-story-scan {
+    display: none;
+  }
+
+  .auth-panel {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .auth-page {
+    padding: 2.25rem 1rem 3rem;
+  }
+
+  .auth-story-title {
+    font-size: clamp(2.45rem, 13vw, 3.5rem);
+  }
+
+  .auth-panel-inner,
+  .resulens-clerk-root,
+  .resulens-clerk-card,
+  .resulens-auth-panel .cl-card {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

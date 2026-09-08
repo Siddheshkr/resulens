@@ -1,6 +1,6 @@
 # ResuLens Work Tracker
 
-Last reviewed: 2026-09-08
+Last reviewed: 2026-09-09
 
 This file is the lightweight, repository-level source of truth for planned and completed work. Product and architecture decisions belong in `context.md`; contributor rules belong in `AGENTS.md`; runtime logs belong in the relevant observability system.
 
@@ -34,37 +34,10 @@ Completed task format:
 
 ## Now
 
-These tasks form the current implementation milestone. Work roughly from top to bottom.
-
-- [ ] Initialize the ResuLens Git repository and baseline project documentation
+- [ ] Run the Phase 1 GitHub Actions workflow from a clean checkout
   - Owner: unassigned
-  - Depends on: none
-  - Verify: clean Git status and documented repository setup
-
-- [ ] Scaffold the pinned Node.js, Next.js, React, and TypeScript application
-  - Owner: unassigned
-  - Depends on: repository initialization
-  - Verify: development server starts and production build passes
-
-- [ ] Configure formatting, linting, strict type-checking, unit tests, and CI
-  - Owner: unassigned
-  - Depends on: application scaffold
-  - Verify: all baseline quality scripts pass locally and in CI
-
-- [ ] Initialize the local Supabase project and environment-variable contract
-  - Owner: unassigned
-  - Depends on: application scaffold
-  - Verify: local Supabase stack starts and generated database types succeed
-
-- [ ] Design the initial relational schema and private storage layout
-  - Owner: unassigned
-  - Depends on: local Supabase project
-  - Verify: migration reset succeeds from an empty database
-
-- [ ] Implement authentication, ownership grants, RLS policies, and pgTAP isolation tests
-  - Owner: unassigned
-  - Depends on: initial schema
-  - Verify: authenticated ownership tests pass and cross-user access is denied
+  - Depends on: review and push of the Phase 1 changes
+  - Verify: the `quality` and `database` jobs pass with repository-managed secrets/configuration
 
 ## Next
 
@@ -122,7 +95,15 @@ These tasks form the current implementation milestone. Work roughly from top to 
 
 ## Blocked
 
-No known blockers.
+- [ ] Run local Supabase pgTAP tests
+  - Blocked since: 2026-09-08
+  - Reason: `npm run test:db` cannot connect to the local Postgres service at `127.0.0.1:54322`; Docker Desktop or Podman is not installed/running in this environment.
+  - Needs: Docker Desktop or Podman, then `supabase start` and `npm run test:db`
+
+- [ ] Review transitive `@clerk/ui` audit advisories before production
+  - Blocked since: 2026-09-09
+  - Reason: `npm audit --omit=dev --audit-level=high` reports 7 high and 13 moderate advisories in Clerk UI's wallet/React Native dependency graph; the automatic forced fix would downgrade the pinned Clerk UI package.
+  - Needs: upstream remediation or an explicit decision to use Clerk's unpinned hosted UI layer
 
 When adding a blocker, use this form:
 
@@ -144,3 +125,29 @@ When adding a blocker, use this form:
 - [x] Add the resume-to-job Mermaid workflow to the architecture context — 2026-09-08
   - Evidence: `context.md` under Core User Workflow
 
+- [x] Scaffold the pinned Phase 1 application and toolchain — 2026-09-08
+  - Evidence: `.nvmrc`, `package.json`, `package-lock.json`, Next.js App Router routes, strict TypeScript, Tailwind 4, Vitest, Playwright, ESLint, Prettier, and `.github/workflows/ci.yml`
+  - Verification: `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `npm run test:e2e` (3 passed)
+
+- [x] Configure Clerk authentication and the protected application shell — 2026-09-08
+  - Evidence: `src/proxy.ts`, `requireUser()`, Clerk sign-in/sign-up routes, signed-in navigation, `/dashboard`, and verified Clerk webhook handler
+  - Verification: `clerk doctor --json` passed; public landing, health, and unauthenticated dashboard redirect Playwright checks passed
+
+- [x] Create the ResuLens Supabase project, profile schema, generated types, and RLS foundation — 2026-09-08
+  - Evidence: Supabase project `resulens`, migrations in `supabase/migrations/`, pgTAP fixture in `supabase/tests/`, and generated `src/lib/supabase/database.types.ts`
+  - Verification: hosted migrations applied; security/performance advisors returned no lints; transactional checks confirmed same-user visibility, cross-user denial, anonymous denial, and ownership-reassignment denial
+
+- [x] Define the Clerk-to-Supabase environment and local provider contract — 2026-09-08
+  - Evidence: `.env.example`, server/browser Supabase clients using Clerk `accessToken`, `supabase/config.toml` third-party provider placeholder, and README setup instructions
+  - Verification: server Supabase unit test confirms the Clerk token callback; no credentials are tracked
+
+- [x] Activate the hosted Supabase third-party Clerk connection — 2026-09-08
+  - Evidence: Supabase Dashboard for project `resulens` shows Clerk enabled for the development domain `grown-bass-4061.clerk.accounts.dev`
+  - Verification: the connection appears as `ENABLED` under Authentication → Sign In / Providers → Third-Party Auth
+
+- [x] Add Phase 1 documentation and repository operating guidance — 2026-09-08
+  - Evidence: updated `context.md`, `AGENTS.md`, `README.md`, and this status tracker
+
+- [x] Fix Clerk auth form visibility and establish the dark-only product shell — 2026-09-09
+  - Evidence: dedicated `/sign-in` and `/sign-up` route links, Clerk loading states, pinned `@clerk/ui`, scoped dark form styling, skip link, dark dashboard, and responsive auth layout
+  - Verification: `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` (7 passed), `npm run build`, and `npm run test:e2e` (5 passed)

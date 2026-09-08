@@ -1,0 +1,32 @@
+- generic [active] [ref=e1]:
+    - link "Skip to content" [ref=e2] [cursor=pointer]:
+        - /url: "#main-content"
+    - banner [ref=e3]:
+        - generic [ref=e4]:
+            - link "ResuLens home" [ref=e5] [cursor=pointer]:
+                - /url: /
+                - generic [aria-hidden] [ref=e6]: R
+                - generic [ref=e7]: ResuLens
+            - navigation "Primary navigation" [ref=e8]:
+                - link "Dashboard" [ref=e9] [cursor=pointer]:
+                    - /url: /dashboard
+                - generic [ref=e10]:
+                    - link "Sign in" [ref=e11] [cursor=pointer]:
+                        - /url: /sign-in
+                    - link "Get started" [ref=e12] [cursor=pointer]:
+                        - /url: /sign-up
+    - main [ref=e13]:
+        - generic [ref=e15]:
+            - region "ResuLens authentication" [ref=e16]:
+                - link "Back to ResuLens home" [ref=e17] [cursor=pointer]:
+                    - /url: /
+                    - generic [aria-hidden] [ref=e18]: R
+                    - generic [ref=e19]: ResuLens
+                - generic [ref=e20]:
+                    - paragraph [ref=e21]: Sign in
+                    - paragraph [ref=e22]: A clearer read on your next move.
+                    - paragraph [ref=e23]: Your profile stays private while ResuLens turns your experience into a focused search.
+                - generic [ref=e35]: Profile signal ready
+            - region "Sign in form" [ref=e38]:
+                - status [ref=e40]:
+                    - generic [ref=e42]: Preparing secure sign in…

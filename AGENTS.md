@@ -40,6 +40,7 @@ If implementation and documentation disagree, investigate and state the conflict
 - Validate API, provider, database-boundary, form, and AI data with Zod.
 - Use generated Supabase database types. Do not maintain competing handwritten row types.
 - Use SQL migrations for every database change. Never make an undocumented production-only schema edit.
+- Clerk is the sole authentication/session owner. Use `await auth()`/`auth.protect()` for server authorization and never make authorization decisions from editable Clerk metadata.
 - Run expensive or failure-prone work asynchronously. PDF parsing, AI calls, job ingestion, and embeddings require explicit status, retry, timeout, and failure behavior.
 - Use stable package releases and commit the lockfile. Do not add canary, beta, or experimental technology without documenting the reason and rollback path.
 - Avoid speculative abstractions and unused infrastructure.
@@ -97,7 +98,7 @@ If implementation and documentation disagree, investigate and state the conflict
 
 - Enable RLS on every table in an exposed schema.
 - Define explicit grants and separate policies for select, insert, update, and delete.
-- Use `(select auth.uid())` patterns where appropriate and index every ownership/filter column used by RLS.
+- For Clerk-backed ownership, use statement-stable `((select auth.jwt()) ->> 'sub')` predicates and index every ownership/filter column used by RLS. Do not introduce Supabase Auth as a second user/session system.
 - Keep service-role access in trusted server or worker code only.
 - Put internal functions and raw ingestion data in non-exposed schemas when practical.
 - Set `search_path` deliberately in security-definer functions, revoke public execution, and grant only the required roles.
@@ -110,6 +111,7 @@ If implementation and documentation disagree, investigate and state the conflict
 ## Security and Privacy Rules
 
 - Authentication is required before resume bytes are uploaded.
+- Verify every Clerk webhook with the framework verifier (Svix-backed) and use the delivery ID for idempotency; webhook delivery is not the authorization boundary.
 - User-owned private data must always include an enforceable ownership relationship.
 - Never expose service-role, OpenAI, Adzuna, or infrastructure secrets through `NEXT_PUBLIC_*`, client bundles, logs, or error responses.
 - Do not log names, emails, phone numbers, addresses, resume text, signed URLs, prompts containing PII, or raw provider credentials.
@@ -180,3 +182,13 @@ A task is complete only when:
 - User-visible behavior is checked on appropriate screen sizes and input methods.
 - Documentation reflects material architecture or workflow changes.
 - The final handoff lists changes, verification evidence, known limitations, and any safe next step.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -1,6 +1,6 @@
 # ResuLens — Product and Architecture Context
 
-Last reviewed: 2026-09-08
+Last reviewed: 2026-09-09
 
 ## Product
 
@@ -51,7 +51,7 @@ flowchart LR
 
 ### MVP
 
-- Google OAuth and email magic-link authentication
+- Clerk-managed Google OAuth and email authentication
 - Private PDF resume upload
 - Text extraction with a scanned-PDF fallback
 - Structured, editable resume profile
@@ -92,29 +92,39 @@ flowchart LR
 
 ## Initial Technical Baseline
 
-| Area | Decision |
-| --- | --- |
-| Runtime | Node.js 24 LTS |
-| Web framework | Next.js 16.3.4 App Router |
-| UI runtime | React and React DOM 19.2.8 |
-| Language | TypeScript 6, strict mode |
-| Styling | Tailwind CSS 4.3, shadcn/ui, Radix primitives, Lucide icons |
-| Validation | Zod 4.5 |
-| Data platform | Supabase Auth, PostgreSQL, Storage, Realtime, Edge Functions, Queues, Cron, and pgvector |
-| Supabase clients | `@supabase/supabase-js`, `@supabase/ssr`, and `@supabase/server` where its bearer-token model applies |
-| PDF extraction | `unpdf`, initially pinned to the latest validated stable release |
-| AI | Official OpenAI JavaScript SDK and Responses API |
-| Default LLM | `gpt-5.6-luna` |
-| Escalation LLM | `gpt-5.6-terra` for low-confidence or unusually formatted resumes |
-| Embeddings | `text-embedding-3-small` |
-| Unit/integration testing | Vitest 5, React Testing Library, MSW, and pgTAP |
-| End-to-end testing | Playwright 1.63 |
-| Hosting | Vercel for Next.js; Supabase for data and background workloads |
-| Observability | Sentry and structured, PII-safe logs |
-| Public endpoint limiting | Upstash Redis/Ratelimit before public beta |
-| Package manager | npm with a committed `package-lock.json` and pinned `packageManager` field |
+| Area                     | Decision                                                                                                    |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| Runtime                  | Node.js 24 LTS                                                                                              |
+| Web framework            | Next.js 16.3.4 App Router                                                                                   |
+| UI runtime               | React and React DOM 19.2.8                                                                                  |
+| Language                 | TypeScript 6, strict mode                                                                                   |
+| Styling                  | Tailwind CSS 4.3, shadcn/ui, Radix primitives, Lucide icons                                                 |
+| Validation               | Zod 4.5                                                                                                     |
+| Authentication           | Clerk for users, sessions, Google OAuth, email authentication, and account UI                               |
+| Data platform            | Supabase PostgreSQL, Storage, Realtime, Edge Functions, Queues, Cron, and pgvector                          |
+| Supabase clients         | `@supabase/supabase-js` with Clerk `accessToken` callbacks; Clerk owns browser and server session lifecycle |
+| PDF extraction           | `unpdf`, initially pinned to the latest validated stable release                                            |
+| AI                       | Official OpenAI JavaScript SDK and Responses API                                                            |
+| Default LLM              | `gpt-5.6-luna`                                                                                              |
+| Escalation LLM           | `gpt-5.6-terra` for low-confidence or unusually formatted resumes                                           |
+| Embeddings               | `text-embedding-3-small`                                                                                    |
+| Unit/integration testing | Vitest 5, React Testing Library, MSW, and pgTAP                                                             |
+| End-to-end testing       | Playwright 1.63                                                                                             |
+| Hosting                  | Vercel for Next.js; Supabase for data and background workloads                                              |
+| Observability            | Sentry and structured, PII-safe logs                                                                        |
+| Public endpoint limiting | Upstash Redis/Ratelimit before public beta                                                                  |
+| Package manager          | npm with a committed `package-lock.json` and pinned `packageManager` field                                  |
 
 Version numbers above are the approved starting baseline, not permission to skip compatibility checks. Verify current stable patch releases, release notes, and peer-dependency compatibility immediately before scaffolding or upgrading.
+
+### Phase 1 foundation status
+
+- Next.js 16 App Router, React 19, TypeScript strict mode, Tailwind CSS 4, Vitest, Playwright, ESLint, and Prettier are scaffolded with pinned versions and a committed npm lockfile.
+- Clerk is the only authentication/session owner. The protected `/dashboard` route and private server resources re-check `auth()`/`requireUser()`; `proxy.ts` is only an early routing check.
+- Supabase receives the Clerk session token through `@supabase/supabase-js`. The initial `profiles` and worker-only `clerk_webhook_events` tables use text Clerk subjects and RLS policies based on `((select auth.jwt()) ->> 'sub')`.
+- The hosted ResuLens Supabase project has its native Clerk third-party auth connection enabled for the development Clerk domain; the exact domain remains environment-specific and is not committed to local configuration.
+- The hosted ResuLens development Supabase project has both Phase 1 migrations applied and passes the Supabase security/performance advisor checks. Local pgTAP execution still requires Docker Desktop or Podman.
+- The product shell is dark-only: an obsidian background, warm readable text, ember accent actions, accessible focus states, reduced-motion handling, and no light-theme fallback on public, auth, or protected surfaces.
 
 ## AI Contract
 
@@ -166,14 +176,14 @@ Apply hard constraints first: location, work authorization, workplace type, role
 
 Retrieve candidates using PostgreSQL full-text search and pgvector similarity. Start with this scoring model:
 
-| Signal | Weight |
-| --- | ---: |
-| Semantic similarity | 40% |
-| Required and preferred skill overlap | 25% |
-| Role title and seniority | 15% |
-| Location and workplace preference | 10% |
-| Posting freshness | 5% |
-| Salary preference | 5% |
+| Signal                               | Weight |
+| ------------------------------------ | -----: |
+| Semantic similarity                  |    40% |
+| Required and preferred skill overlap |    25% |
+| Role title and seniority             |    15% |
+| Location and workplace preference    |    10% |
+| Posting freshness                    |     5% |
+| Salary preference                    |     5% |
 
 Renormalize weights when optional provider data, such as salary, is unavailable. Do not penalize a candidate for data the provider omitted.
 
@@ -184,6 +194,7 @@ LLM explanations are grounded summaries of calculated evidence. They must distin
 Expected core tables:
 
 - `profiles`
+- `clerk_webhook_events` (worker-only idempotency records)
 - `candidate_preferences`
 - `resumes`
 - `resume_profiles`
@@ -216,7 +227,8 @@ Expected indexes include:
 - Validate the PDF signature, MIME type, byte size, page count, encryption state, processing duration, and resource use.
 - Default limits are 5 MB and 5 pages until benchmark evidence justifies changes.
 - Never execute PDF scripts, expose raw uploads publicly, or parse unbounded content in a request handler.
-- Enable RLS on every exposed table and define explicit grants and per-operation policies.
+- Enable RLS on every exposed table and define explicit grants and per-operation policies. For Clerk-backed rows, authorize with the immutable JWT subject claim `((select auth.jwt()) ->> 'sub')`, never editable Clerk metadata.
+- Treat Clerk webhook verification and idempotency as reliability infrastructure; do not make authorization correctness depend on webhook delivery.
 - Test that users cannot access another user's resume, profile, preferences, matches, feedback, or storage objects.
 - Keep service-role, OpenAI, and job-provider credentials server-only; never prefix them with `NEXT_PUBLIC_`.
 - Do not place resume text, names, contact data, storage URLs, or model prompts in logs, analytics, traces, or error messages.
