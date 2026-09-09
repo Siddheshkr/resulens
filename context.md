@@ -125,6 +125,8 @@ Version numbers above are the approved starting baseline, not permission to skip
 - The hosted ResuLens Supabase project has its native Clerk third-party auth connection enabled for the development Clerk domain; the exact domain remains environment-specific and is not committed to local configuration.
 - The hosted ResuLens development Supabase project has both Phase 1 migrations applied and passes the Supabase security/performance advisor checks. Local pgTAP execution still requires Docker Desktop or Podman.
 - The product shell is dark-only: an obsidian background, warm readable text, ember accent actions, accessible focus states, reduced-motion handling, and no light-theme fallback on public, auth, or protected surfaces.
+- Clerk account components use the hosted Clerk UI bundle through `ClerkProvider`; ResuLens keeps its dark appearance in namespaced `appearance.elements` classes and does not ship the vulnerable bundled `@clerk/ui` dependency.
+- Protected API requests with no Clerk credential take a bounded signed-out fast path so they return a safe 401 without a browser handshake; requests carrying a credential continue through Clerk middleware, and the route handler still re-checks `requireUser()`.
 
 ## AI Contract
 

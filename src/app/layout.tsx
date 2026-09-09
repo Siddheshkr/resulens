@@ -1,5 +1,4 @@
 import { ClerkProvider } from "@clerk/nextjs";
-import { ui } from "@clerk/ui";
 import type { Metadata, Viewport } from "next";
 
 import { SiteHeader } from "@/components/site-header";
@@ -40,7 +39,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             publishableKey={publishableKey}
             signInUrl="/sign-in"
             signUpUrl="/sign-up"
-            ui={ui}
           >
             {content}
           </ClerkProvider>

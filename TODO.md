@@ -37,7 +37,12 @@ Completed task format:
 - [ ] Run the Phase 1 GitHub Actions workflow from a clean checkout
   - Owner: unassigned
   - Depends on: review and push of the Phase 1 changes
-  - Verify: the `quality` and `database` jobs pass with repository-managed secrets/configuration
+  - Verify: the `quality` and `database` jobs pass with repository-managed configuration; local quality and browser checks are green, but the hosted workflow still requires a push.
+
+- [ ] Run a real Clerk email/Google OAuth and webhook delivery smoke test
+  - Owner: unassigned
+  - Depends on: a Clerk test account, enabled providers, and the deployed webhook URL
+  - Verify: sign-in, sign-up, sign-out, and `user.deleted` delivery complete against the configured Clerk instance without exposing secrets
 
 ## Next
 
@@ -97,13 +102,8 @@ Completed task format:
 
 - [ ] Run local Supabase pgTAP tests
   - Blocked since: 2026-09-08
-  - Reason: `npm run test:db` cannot connect to the local Postgres service at `127.0.0.1:54322`; Docker Desktop or Podman is not installed/running in this environment.
+  - Reason: verified again on 2026-09-09, `npm run test:db` cannot connect to the local Postgres service at `127.0.0.1:54322`; Docker Desktop or Podman is not installed/running in this environment.
   - Needs: Docker Desktop or Podman, then `supabase start` and `npm run test:db`
-
-- [ ] Review transitive `@clerk/ui` audit advisories before production
-  - Blocked since: 2026-09-09
-  - Reason: `npm audit --omit=dev --audit-level=high` reports 7 high and 13 moderate advisories in Clerk UI's wallet/React Native dependency graph; the automatic forced fix would downgrade the pinned Clerk UI package.
-  - Needs: upstream remediation or an explicit decision to use Clerk's unpinned hosted UI layer
 
 When adding a blocker, use this form:
 
@@ -127,7 +127,7 @@ When adding a blocker, use this form:
 
 - [x] Scaffold the pinned Phase 1 application and toolchain — 2026-09-08
   - Evidence: `.nvmrc`, `package.json`, `package-lock.json`, Next.js App Router routes, strict TypeScript, Tailwind 4, Vitest, Playwright, ESLint, Prettier, and `.github/workflows/ci.yml`
-  - Verification: `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `npm run test:e2e` (3 passed)
+  - Verification: current local re-run on Node 24: `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` (10 passed), `npm run build`, and `npm run test:e2e` (6 passed)
 
 - [x] Configure Clerk authentication and the protected application shell — 2026-09-08
   - Evidence: `src/proxy.ts`, `requireUser()`, Clerk sign-in/sign-up routes, signed-in navigation, `/dashboard`, and verified Clerk webhook handler
@@ -149,5 +149,17 @@ When adding a blocker, use this form:
   - Evidence: updated `context.md`, `AGENTS.md`, `README.md`, and this status tracker
 
 - [x] Fix Clerk auth form visibility and establish the dark-only product shell — 2026-09-09
-  - Evidence: dedicated `/sign-in` and `/sign-up` route links, Clerk loading states, pinned `@clerk/ui`, scoped dark form styling, skip link, dark dashboard, and responsive auth layout
-  - Verification: `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` (7 passed), `npm run build`, and `npm run test:e2e` (5 passed)
+  - Evidence: dedicated `/sign-in` and `/sign-up` route links, Clerk-hosted account UI with namespaced appearance classes, scoped dark form styling, skip link, dark dashboard, responsive auth layout, explicit Clerk failure/retry state, and a bounded loading timeout
+  - Verification: `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` (10 passed), `npm run build`, and `npm run test:e2e` (6 passed); the local sign-in and sign-up forms render with Google/email options
+
+- [x] Make local Clerk auth resilient to public-route middleware and host binding issues — 2026-09-09
+  - Evidence: public routes bypass the server-side Clerk middleware round trip; protected dashboard/private API paths remain protected; anonymous private API requests receive an internal signed-out auth context without a Clerk handshake; `npm run dev` uses the stable webpack path and binds IPv4 loopback, while `npm run dev:lan` is available for LAN testing
+  - Verification: `/api/health` responds, `/api/private` returns 401, `/sign-in` renders the Clerk card, and `/dashboard` still redirects unauthenticated users in Playwright
+
+- [x] Make Clerk webhook cleanup retryable and private API authorization explicit — 2026-09-09
+  - Evidence: duplicate webhook deliveries with an unfinished `processed_at` record retry profile deletion; `/api/private` re-checks `requireUser()` and returns a safe 401 response
+  - Verification: webhook retry/idempotency unit tests and private API unit test pass; full Vitest suite reports 10 passing tests
+
+- [x] Remove the vulnerable bundled Clerk UI dependency and verify the production dependency audit — 2026-09-09
+  - Evidence: `@clerk/ui` was removed; Clerk-hosted UI is loaded by `ClerkProvider`, and custom appearance classes no longer depend on Clerk's internal DOM class names
+  - Verification: `npm audit --omit=dev --audit-level=high` reports `found 0 vulnerabilities`; `npm ci` remains lockfile-backed

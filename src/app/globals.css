@@ -522,12 +522,11 @@ button {
   color: #ffad9f !important;
 }
 
-/* Clerk keeps its runtime class names stable while appearance.elements is loading. */
-.resulens-auth-panel .cl-rootBox {
+.resulens-auth-panel .resulens-clerk-root {
   width: 100%;
 }
 
-.resulens-auth-panel .cl-card {
+.resulens-auth-panel .resulens-clerk-card {
   width: 100%;
   max-width: 28rem;
   overflow: hidden;
@@ -537,18 +536,18 @@ button {
   box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.38) !important;
 }
 
-.resulens-auth-panel .cl-headerTitle {
+.resulens-auth-panel .resulens-clerk-title {
   color: var(--foreground) !important;
   letter-spacing: -0.035em !important;
 }
 
-.resulens-auth-panel .cl-headerSubtitle,
-.resulens-auth-panel .cl-footerActionText,
-.resulens-auth-panel .cl-dividerText {
+.resulens-auth-panel .resulens-clerk-subtitle,
+.resulens-auth-panel .resulens-clerk-footer-text,
+.resulens-auth-panel .resulens-clerk-divider-text {
   color: var(--muted) !important;
 }
 
-.resulens-auth-panel .cl-socialButtonsBlockButton {
+.resulens-auth-panel .resulens-clerk-social-button {
   border: 1px solid rgba(243, 238, 229, 0.14) !important;
   background: rgba(243, 238, 229, 0.05) !important;
   color: var(--foreground) !important;
@@ -558,25 +557,25 @@ button {
     transform 160ms ease;
 }
 
-.resulens-auth-panel .cl-socialButtonsBlockButton:hover {
+.resulens-auth-panel .resulens-clerk-social-button:hover {
   border-color: rgba(243, 238, 229, 0.3) !important;
   background: rgba(243, 238, 229, 0.09) !important;
   transform: translateY(-1px);
 }
 
-.resulens-auth-panel .cl-socialButtonsBlockButtonText {
+.resulens-auth-panel .resulens-clerk-social-button-text {
   color: var(--foreground) !important;
 }
 
-.resulens-auth-panel .cl-dividerLine {
+.resulens-auth-panel .resulens-clerk-divider-line {
   background: rgba(243, 238, 229, 0.12) !important;
 }
 
-.resulens-auth-panel .cl-formFieldLabel {
+.resulens-auth-panel .resulens-clerk-label {
   color: var(--foreground) !important;
 }
 
-.resulens-auth-panel .cl-formFieldInput {
+.resulens-auth-panel .resulens-clerk-input {
   border: 1px solid rgba(243, 238, 229, 0.16) !important;
   background: #0b0c0f !important;
   color: var(--foreground) !important;
@@ -585,16 +584,16 @@ button {
     box-shadow 160ms ease;
 }
 
-.resulens-auth-panel .cl-formFieldInput:focus {
+.resulens-auth-panel .resulens-clerk-input:focus {
   border-color: var(--brand) !important;
   box-shadow: 0 0 0 3px rgba(255, 113, 91, 0.16) !important;
 }
 
-.resulens-auth-panel .cl-formFieldInputShowPasswordButton {
+.resulens-auth-panel .resulens-clerk-password-toggle {
   color: var(--muted) !important;
 }
 
-.resulens-auth-panel .cl-formButtonPrimary {
+.resulens-auth-panel .resulens-clerk-primary-button {
   border: 0 !important;
   background: var(--brand) !important;
   color: #070708 !important;
@@ -605,24 +604,24 @@ button {
     transform 160ms ease;
 }
 
-.resulens-auth-panel .cl-formButtonPrimary:hover {
+.resulens-auth-panel .resulens-clerk-primary-button:hover {
   background: #ff8976 !important;
   box-shadow: 0 0.7rem 1.5rem rgba(255, 113, 91, 0.18) !important;
   transform: translateY(-1px);
 }
 
-.resulens-auth-panel .cl-footerActionLink,
-.resulens-auth-panel .cl-formFieldAction {
+.resulens-auth-panel .resulens-clerk-footer-link,
+.resulens-auth-panel .resulens-clerk-action {
   color: var(--brand) !important;
 }
 
-.resulens-auth-panel .cl-footerActionLink:hover,
-.resulens-auth-panel .cl-formFieldAction:hover {
+.resulens-auth-panel .resulens-clerk-footer-link:hover,
+.resulens-auth-panel .resulens-clerk-action:hover {
   color: #ff9a89 !important;
 }
 
-.resulens-auth-panel .cl-formFieldErrorText,
-.resulens-auth-panel .cl-alert {
+.resulens-auth-panel .resulens-clerk-error,
+.resulens-auth-panel .resulens-clerk-alert {
   color: #ffad9f !important;
 }
 
@@ -680,8 +679,7 @@ button {
 
   .auth-panel-inner,
   .resulens-clerk-root,
-  .resulens-clerk-card,
-  .resulens-auth-panel .cl-card {
+  .resulens-clerk-card {
     max-width: none;
   }
 }

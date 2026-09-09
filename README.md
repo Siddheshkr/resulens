@@ -38,11 +38,19 @@ ResuLens is a resume-first job discovery application. Phase 1 provides the Next.
    npm run dev
    ```
 
+   Open [http://127.0.0.1:3000](http://127.0.0.1:3000). The default development
+   command uses Next's webpack path for stable Clerk middleware behavior and
+   binds to IPv4 loopback so local browsers and the in-app browser can reach it
+   consistently. For testing from another device on the same network,
+   use `npm run dev:lan` and add that machine's origin to the Clerk development
+   instance allowed origins.
+
 ## Scripts
 
 | Command                | Purpose                                             |
 | ---------------------- | --------------------------------------------------- |
-| `npm run dev`          | Start the Next.js development server                |
+| `npm run dev`          | Start the webpack-backed Next.js development server |
+| `npm run dev:lan`      | Start the server on all interfaces for LAN testing  |
 | `npm run lint`         | Run ESLint                                          |
 | `npm run typecheck`    | Run TypeScript strict checking                      |
 | `npm test`             | Run unit tests with Vitest                          |

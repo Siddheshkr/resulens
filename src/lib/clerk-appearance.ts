@@ -21,6 +21,7 @@ export const clerkAppearance = {
     dividerText: "resulens-clerk-divider-text",
     formFieldLabel: "resulens-clerk-label",
     formFieldInput: "resulens-clerk-input",
+    formFieldInputShowPasswordButton: "resulens-clerk-password-toggle",
     formFieldAction: "resulens-clerk-action",
     formButtonPrimary: "resulens-clerk-primary-button",
     footerActionText: "resulens-clerk-footer-text",

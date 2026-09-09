@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  if (eventError) {
+  if (eventError && eventError.code !== "23505") {
     return Response.json({ error: "Could not record webhook" }, { status: 500 });
   }
 

@@ -28,10 +28,19 @@ function signedRequest(eventId: string, payload: string) {
   });
 }
 
-function createAdminMock(options?: { duplicate?: boolean }) {
+function createAdminMock(options?: {
+  deleteFailures?: number;
+  duplicate?: boolean;
+  processedAt?: string | null;
+}) {
   let insertCall = 0;
+  let deleteCall = 0;
   const profilesDelete = vi.fn().mockReturnValue({
-    eq: vi.fn().mockResolvedValue({ error: null }),
+    eq: vi.fn().mockImplementation(async () => {
+      const error =
+        deleteCall++ < (options?.deleteFailures ?? 0) ? { code: "temporary_failure" } : null;
+      return { error };
+    }),
   });
   const eventsUpdate = vi.fn().mockReturnValue({
     eq: vi.fn().mockResolvedValue({ error: null }),
@@ -39,7 +48,10 @@ function createAdminMock(options?: { duplicate?: boolean }) {
   const eventsSelect = vi.fn().mockReturnValue({
     eq: vi.fn().mockReturnValue({
       maybeSingle: vi.fn().mockResolvedValue({
-        data: { processed_at: "2026-09-08T00:00:00.000Z" },
+        data: {
+          processed_at:
+            options?.processedAt !== undefined ? options.processedAt : "2026-09-08T00:00:00.000Z",
+        },
         error: null,
       }),
     }),
@@ -122,5 +134,25 @@ describe("POST /api/webhooks/clerk", () => {
     expect(profilesDelete).toHaveBeenCalledOnce();
     expect(eventsUpdate).toHaveBeenCalledOnce();
     expect(eventsSelect).toHaveBeenCalledOnce();
+  });
+
+  it("retries deletion when an earlier delivery recorded but did not finish", async () => {
+    const { admin, profilesDelete, eventsUpdate } = createAdminMock({
+      deleteFailures: 1,
+      processedAt: null,
+    });
+    vi.mocked(createAdminSupabaseClient).mockReturnValue(
+      admin as unknown as ReturnType<typeof createAdminSupabaseClient>,
+    );
+    const payload = JSON.stringify({ type: "user.deleted", data: { id: "user_test_123" } });
+
+    const firstResponse = await POST(signedRequest("msg_retry", payload));
+    const retryResponse = await POST(signedRequest("msg_retry", payload));
+
+    expect(firstResponse.status).toBe(500);
+    expect(retryResponse.status).toBe(200);
+    await expect(retryResponse.json()).resolves.toEqual({ received: true });
+    expect(profilesDelete).toHaveBeenCalledTimes(2);
+    expect(eventsUpdate).toHaveBeenCalledOnce();
   });
 });
