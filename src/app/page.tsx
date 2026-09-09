@@ -37,6 +37,16 @@ export default function HomePage() {
           <p className="mt-5 text-xs text-[var(--quiet)]">
             Private by default. You approve the profile before matching starts.
           </p>
+          <p className="mt-3 text-sm text-[var(--muted)]">
+            Already signed in?{" "}
+            <Link
+              href="/dashboard"
+              className="font-semibold text-[var(--foreground)] underline decoration-[var(--brand)] underline-offset-4"
+            >
+              Open your dashboard to upload
+            </Link>
+            .
+          </p>
         </div>
 
         <div className="relative overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--card)] p-5 shadow-2xl shadow-black/30 sm:p-7">

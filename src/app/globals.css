@@ -189,6 +189,112 @@ button {
   color: #bbb6ff;
 }
 
+/* Resume intake and review surfaces */
+.resume-upload-card,
+.resume-review-card {
+  border: 1px solid var(--border);
+  border-radius: 1.75rem;
+  background: linear-gradient(145deg, rgba(17, 18, 22, 0.96), rgba(11, 12, 16, 0.92));
+  padding: clamp(1.25rem, 4vw, 2rem);
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.24);
+}
+
+.resume-history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid rgba(243, 238, 229, 0.1);
+  border-radius: 1rem;
+  background: rgba(17, 18, 22, 0.72);
+  padding: 1rem 1.1rem;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+.resume-history-row:hover {
+  border-color: rgba(255, 113, 91, 0.42);
+  background: rgba(255, 113, 91, 0.06);
+  transform: translateY(-1px);
+}
+
+.status-pill {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  border: 1px solid rgba(255, 113, 91, 0.3);
+  border-radius: 999px;
+  background: rgba(255, 113, 91, 0.08);
+  padding: 0.35rem 0.65rem;
+  color: #ffad9f;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: capitalize;
+}
+
+.status-pill-success {
+  border-color: rgba(168, 227, 192, 0.28);
+  background: rgba(168, 227, 192, 0.08);
+  color: #a8e3c0;
+}
+
+.processing-dot {
+  display: block;
+  width: 0.75rem;
+  height: 0.75rem;
+  flex: 0 0 auto;
+  margin-top: 0.35rem;
+  border: 2px solid rgba(255, 113, 91, 0.85);
+  border-radius: 999px;
+  box-shadow: 0 0 0 0.35rem rgba(255, 113, 91, 0.09);
+}
+
+.processing-dot-queued,
+.processing-dot-processing,
+.processing-dot-uploaded,
+.processing-dot-pending_upload,
+.processing-dot-deleting {
+  animation: pulse-processing 1.8s ease-in-out infinite;
+}
+
+.processing-dot-needs_review,
+.processing-dot-approved {
+  border-color: #a8e3c0;
+  box-shadow: 0 0 0 0.35rem rgba(168, 227, 192, 0.09);
+}
+
+.processing-dot-failed,
+.processing-dot-delete_failed {
+  border-color: #ff9285;
+  box-shadow: 0 0 0 0.35rem rgba(255, 146, 133, 0.09);
+}
+
+@keyframes pulse-processing {
+  0%,
+  100% {
+    opacity: 0.48;
+    transform: scale(0.9);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .processing-dot-queued,
+  .processing-dot-processing,
+  .processing-dot-uploaded,
+  .processing-dot-pending_upload,
+  .processing-dot-deleting {
+    animation: none;
+  }
+}
+
 /* Auth surfaces */
 .auth-page {
   min-height: calc(100vh - 74px);

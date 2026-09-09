@@ -8,7 +8,14 @@ function isProtectedPageRoute(pathname: string) {
 }
 
 function isProtectedApiRoute(pathname: string) {
-  return pathname === "/api/private" || pathname.startsWith("/api/private/");
+  return (
+    pathname === "/api/private" ||
+    pathname.startsWith("/api/private/") ||
+    pathname === "/api/resumes" ||
+    pathname.startsWith("/api/resumes/") ||
+    pathname === "/api/jobs" ||
+    pathname.startsWith("/api/jobs/")
+  );
 }
 
 function isProtectedRoute(pathname: string) {

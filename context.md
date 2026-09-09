@@ -123,10 +123,31 @@ Version numbers above are the approved starting baseline, not permission to skip
 - Clerk is the only authentication/session owner. The protected `/dashboard` route and private server resources re-check `auth()`/`requireUser()`; `proxy.ts` is only an early routing check.
 - Supabase receives the Clerk session token through `@supabase/supabase-js`. The initial `profiles` and worker-only `clerk_webhook_events` tables use text Clerk subjects and RLS policies based on `((select auth.jwt()) ->> 'sub')`.
 - The hosted ResuLens Supabase project has its native Clerk third-party auth connection enabled for the development Clerk domain; the exact domain remains environment-specific and is not committed to local configuration.
-- The hosted ResuLens development Supabase project has both Phase 1 migrations applied and passes the Supabase security/performance advisor checks. Local pgTAP execution still requires Docker Desktop or Podman.
+- The ResuLens development Clerk instance has its Supabase integration enabled, so newly issued Clerk session tokens include the Supabase-compatible `role` claim. Existing sessions must refresh after this setting changes.
+- The hosted ResuLens development Supabase project has both Phase 1 migrations applied and passes the Supabase security/performance advisor checks. Hosted profile RLS pgTAP verification passes; local pgTAP execution still requires Docker Desktop or Podman.
 - The product shell is dark-only: an obsidian background, warm readable text, ember accent actions, accessible focus states, reduced-motion handling, and no light-theme fallback on public, auth, or protected surfaces.
 - Clerk account components use the hosted Clerk UI bundle through `ClerkProvider`; ResuLens keeps its dark appearance in namespaced `appearance.elements` classes and does not ship the vulnerable bundled `@clerk/ui` dependency.
 - Protected API requests with no Clerk credential take a bounded signed-out fast path so they return a safe 401 without a browser handshake; requests carrying a credential continue through Clerk middleware, and the route handler still re-checks `requireUser()`.
+
+### Phase 2 resume intake status
+
+- The authenticated dashboard now owns the resume workflow: direct signed upload, upload completion, processing status, scan history, retry, profile review, approval, and deletion. The upload surface is `/dashboard` after Clerk sign-in; the public landing page intentionally does not accept resume bytes.
+- Phase 2 source includes the `resumes`, `resume_profiles`, and `resume_processing_jobs` schema migration. The migration creates a private `resumes` bucket with a five-megabyte PDF limit, explicit Storage policies, ownership RLS, profile version constraints, and the durable `resume_processing` Supabase Queue. Queue messages carry only opaque identifiers; the relational table is the safe status ledger. The linked hosted development project has this migration applied; local/staging environments still require their own migration run before enabling uploads.
+- Resume bytes upload directly from the browser with a short-lived Supabase signed upload token created by a server-authorized route. The browser never receives the service-role key, OpenAI key, or worker secret. AI-processing consent is required before the token is issued.
+- PDF processing is bounded and asynchronous. The worker validates PDF signature/MIME/size/page count, rejects encrypted or malformed files, extracts text with `unpdf`, and marks weak extraction for the vision/file-input fallback. Processing stages and safe retryable/terminal errors are persisted without logging resume content.
+- The Supabase Edge Function `process-resumes` consumes at most three durable processing jobs per invocation and calls the server-only Node processor. The processor re-checks deletion state immediately before writing profile data; deletion cascades profile and queue rows and removes the private object.
+- OpenAI Responses Structured Outputs uses the versioned Zod profile schema, `store: false`, bounded output, page/evidence references, confidence values, and server-only model configuration. The default and escalation model names remain environment-configurable until evaluation locks a production snapshot.
+- Profile edits create draft versions; approval creates an approved version and clears `derived_profile_version`. Future embeddings and matches must compare their source version with the approved profile version before use.
+- Hosted resume RLS pgTAP verification passes for same-user access, cross-user denial, queue-row protection, ownership-reassignment protection, and anonymous denial; synthetic test data rolls back cleanly. Local execution remains Docker-dependent.
+
+### Phase 3 job-ingestion status
+
+- The shared job-source contract is implemented under `src/server/job-sources`. It bounds provider responses, retries transient failures, validates external JSON with Zod, normalizes records, strips provider HTML to plain text, canonicalizes HTTPS source URLs, and records a SHA-256 content fingerprint.
+- Adzuna search, Greenhouse Job Board, and Lever Postings adapters use their documented public endpoints. Provider credentials remain server-only; curated board/site identifiers live in `job_sources.provider_config` and never contain secrets.
+- The hosted schema includes `job_sources`, `companies`, `job_postings`, `job_skills`, and `ingestion_runs`. A private `private.job_posting_payloads` table keeps raw provider payloads out of the Data API. The normalized job table has explicit RLS, a generated simple-language `tsvector`, GIN search index, provider identity uniqueness, stale-listing expiry support, and authenticated read-only access.
+- The bounded Next.js internal worker route and `ingest-jobs` Edge Function isolate provider failures, retain safe run counts/errors, upsert idempotently, refresh skills and private payloads, and expire unseen jobs only after a complete successful source refresh. No embeddings, authoritative match scores, or LLM explanations are part of this phase.
+- `/dashboard/jobs` and `/api/jobs` expose only normalized active listings to authenticated users. Empty and provider-failure states are explicit; raw payloads and provider credentials never reach the client.
+- The hosted Phase 3 RLS suite passes through the linked Supabase SQL runner with the `pgtap` extension enabled; its synthetic transaction rolls back cleanly. Local pgTAP still requires Docker Desktop or Podman, which is not part of the user's development setup.
 
 ## AI Contract
 
@@ -170,7 +191,7 @@ Requirements:
 - Keep raw provider payloads private and out of client responses.
 - Refresh on a configurable schedule, initially every four to six hours.
 - Record run status, counts, retry attempts, failures, and rate-limit responses.
-- Expire a listing when the source closes it or after the configured stale threshold.
+- Expire a listing when the source closes it or after the configured stale threshold. Phase 3 expires unseen active listings only after a complete, error-free provider refresh; partial runs leave existing listings active until a later complete run.
 
 ## Matching
 
@@ -207,6 +228,7 @@ Expected core tables:
 - `job_postings`
 - `job_skills`
 - `ingestion_runs`
+- `private.job_posting_payloads` (worker-only raw provider payloads)
 - `match_runs`
 - `job_matches`
 - `job_feedback`

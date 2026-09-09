@@ -44,37 +44,32 @@ Completed task format:
   - Depends on: a Clerk test account, enabled providers, and the deployed webhook URL
   - Verify: sign-in, sign-up, sign-out, and `user.deleted` delivery complete against the configured Clerk instance without exposing secrets
 
+- [ ] Apply the Phase 2 Supabase migration to local/staging environments
+  - Owner: unassigned
+  - Depends on: Docker Desktop or Podman for local Supabase, plus each environment's migration history
+  - Verify: `supabase db push --linked` or the environment's migration workflow applies `20260909102800_create_resume_processing_foundation.sql`, generated types are refreshed, and Supabase security/performance advisors remain clean
+
+- [ ] Configure and smoke-test the Phase 2 worker path
+  - Owner: unassigned
+  - Depends on: the Phase 2 migration, OpenAI server key, worker secret, deployed app URL, and a synthetic PDF
+  - Verify: signed upload, completion, bounded worker processing, profile review, approval, retry, refresh, and deletion complete without raw resume content in logs
+
+- [ ] Configure and smoke-test the Phase 3 job ingestion worker
+  - Owner: unassigned
+  - Depends on: provider credentials, one or more curated board/site rows, `JOB_INGESTION_SECRET`, and a deployed app URL
+  - Verify: a synthetic or permitted provider run is idempotent, partial provider failure is isolated, stale jobs expire only after a complete run, and `/dashboard/jobs` shows normalized listings without raw payloads
+
 ## Next
 
-- [ ] Implement direct signed uploads to the private resume bucket
+- [ ] Replace the process-local upload/retry limiter with distributed rate limiting before public beta
   - Owner: unassigned
-  - Depends on: authentication, schema, storage policies
-  - Verify: valid PDF upload succeeds and cross-user access fails
+  - Depends on: Upstash Redis/Ratelimit deployment decision
+  - Verify: limits hold across multiple app instances without logging identifiers or resume content
 
-- [ ] Implement bounded, asynchronous PDF validation and text extraction
+- [ ] Add representative extraction evaluation fixtures and lock the production model snapshot
   - Owner: unassigned
-  - Depends on: private uploads
-  - Verify: text PDF, scanned PDF, encrypted PDF, oversized PDF, and malformed PDF fixtures reach the expected states
-
-- [ ] Implement OpenAI Structured Outputs for the resume profile
-  - Owner: unassigned
-  - Depends on: extracted resume text
-  - Verify: synthetic extraction evals pass schema, grounding, and confidence checks
-
-- [ ] Build the extracted-profile review and correction workflow
-  - Owner: unassigned
-  - Depends on: structured resume extraction
-  - Verify: user can correct, approve, and persist every supported profile section
-
-- [ ] Implement the shared job-source adapter contract
-  - Owner: unassigned
-  - Depends on: initial job schema
-  - Verify: sanitized provider fixtures satisfy the shared contract tests
-
-- [ ] Implement Adzuna, Greenhouse, and Lever ingestion adapters
-  - Owner: unassigned
-  - Depends on: provider adapter contract
-  - Verify: pagination, rate limiting, retries, deduplication, and partial-provider failure tests pass
+  - Depends on: synthetic text/scanned resume corpus and provider budget
+  - Verify: schema validity, evidence grounding, confidence calibration, latency, and token-cost baseline are recorded
 
 - [ ] Implement job and resume embedding workflows
   - Owner: unassigned
@@ -135,7 +130,7 @@ When adding a blocker, use this form:
 
 - [x] Create the ResuLens Supabase project, profile schema, generated types, and RLS foundation — 2026-09-08
   - Evidence: Supabase project `resulens`, migrations in `supabase/migrations/`, pgTAP fixture in `supabase/tests/`, and generated `src/lib/supabase/database.types.ts`
-  - Verification: hosted migrations applied; security/performance advisors returned no lints; transactional checks confirmed same-user visibility, cross-user denial, anonymous denial, and ownership-reassignment denial
+  - Verification: hosted migrations applied; security/performance advisors returned no lints; hosted `profiles_rls.test.sql` passes all 8 assertions through the linked SQL runner with synthetic rows rolled back; transactional checks confirmed same-user visibility, cross-user denial, anonymous denial, and ownership-reassignment denial
 
 - [x] Define the Clerk-to-Supabase environment and local provider contract — 2026-09-08
   - Evidence: `.env.example`, server/browser Supabase clients using Clerk `accessToken`, `supabase/config.toml` third-party provider placeholder, and README setup instructions
@@ -144,6 +139,10 @@ When adding a blocker, use this form:
 - [x] Activate the hosted Supabase third-party Clerk connection — 2026-09-08
   - Evidence: Supabase Dashboard for project `resulens` shows Clerk enabled for the development domain `grown-bass-4061.clerk.accounts.dev`
   - Verification: the connection appears as `ENABLED` under Authentication → Sign In / Providers → Third-Party Auth
+
+- [x] Activate Clerk's Supabase session integration for the development instance — 2026-09-09
+  - Evidence: Clerk Dashboard → Connect Clerk with Supabase reports the ResuLens development integration as `Enabled` and Supabase reports the Clerk provider as `ENABLED`
+  - Verification: Clerk now adds the Supabase-compatible role claim to new session tokens; existing browser sessions must refresh or sign in again
 
 - [x] Add Phase 1 documentation and repository operating guidance — 2026-09-08
   - Evidence: updated `context.md`, `AGENTS.md`, `README.md`, and this status tracker
@@ -163,3 +162,23 @@ When adding a blocker, use this form:
 - [x] Remove the vulnerable bundled Clerk UI dependency and verify the production dependency audit — 2026-09-09
   - Evidence: `@clerk/ui` was removed; Clerk-hosted UI is loaded by `ClerkProvider`, and custom appearance classes no longer depend on Clerk's internal DOM class names
   - Verification: `npm audit --omit=dev --audit-level=high` reports `found 0 vulnerabilities`; `npm ci` remains lockfile-backed
+
+- [x] Implement the Phase 2 resume intake, processing, and profile-review source foundation — 2026-09-09
+  - Evidence: private signed-upload API, consent/quota/rate checks, `resumes`/`resume_profiles`/`resume_processing_jobs` and `resume_processing` Queue migration, Storage policies, `unpdf` validation and extraction, OpenAI Responses Structured Outputs contract, bounded worker Edge Function, versioned profile edit/approval routes, retry/status polling, deletion cleanup, and dark dashboard review screens
+  - Verification: `npm run lint`, `npm run typecheck`, `npm test` (17 passing tests), `npm run build`, and `npm run test:e2e` (7 passing tests); synthetic PDF text/weak-extraction/malformed-PDF and rate-limit tests pass. Hosted migration `20260909102800_create_resume_processing_foundation.sql` is applied to project `resulens`; catalog checks confirm the resume tables, `pgmq`, private Storage bucket, and migration history. Hosted `resumes_rls.test.sql` passes all 11 assertions through the linked SQL runner with synthetic rows rolled back. Live OpenAI/worker smoke testing remains in Now.
+
+- [x] Deploy the hosted Phase 2 schema and ownership indexes — 2026-09-09
+  - Evidence: `20260909102800_create_resume_processing_foundation.sql` and `20260909120000_add_resume_ownership_indexes.sql` are applied to the linked `resulens` project.
+  - Verification: `supabase db lint --linked` reports no schema errors; advisors report no unindexed foreign keys or security findings. Remaining unused-index notices are expected until real resume/worker traffic exists.
+
+- [x] Verify hosted Phase 1 and Phase 2 RLS policies with Docker-free pgTAP — 2026-09-09
+  - Evidence: `supabase/tests/profiles_rls.test.sql` (8 assertions) and `supabase/tests/resumes_rls.test.sql` (11 assertions) executed against the linked `resulens` project with `finish(true)`.
+  - Verification: all assertions passed; synthetic profile, resume, and job rows were confirmed absent after each transaction. Local pgTAP remains a Docker-dependent check only.
+
+- [x] Implement the Phase 3 normalized job schema and provider adapters — 2026-09-09
+  - Evidence: `job_sources`, `companies`, `job_postings`, `job_skills`, `ingestion_runs`, private raw-payload storage, shared adapter contract, Adzuna/Greenhouse/Lever adapters, bounded retrying fetch, idempotent ingestion service, internal worker route, `ingest-jobs` Edge Function, authenticated `/dashboard/jobs` feed, and job RLS test coverage.
+  - Verification: 21 Vitest tests pass, including HTML sanitization, provider validation, pagination, retry behavior, and safe normalization. Hosted migrations `20260909165339`, `20260909165456`, `20260909170206`, and `20260909170637` are applied; security advisors report no findings, and the remaining performance notices are expected unused-index INFO entries before ingestion traffic. Hosted RLS pgTAP verification also passes through the linked Supabase SQL runner with synthetic data rolled back; local pgTAP execution remains blocked by the unavailable local Postgres service.
+
+- [x] Verify hosted Phase 3 RLS policies with Docker-free pgTAP — 2026-09-09
+  - Evidence: `supabase/tests/jobs_rls.test.sql` executed against the linked `resulens` project after enabling the `pgtap` extension; `finish(true)` returned successfully for the 12 planned assertions.
+  - Verification: synthetic source, company, job, skill, and private-payload rows were confirmed absent after the transaction, proving the test cleanup rollback.

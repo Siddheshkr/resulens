@@ -61,9 +61,36 @@ test("the private API returns an authentication error to anonymous callers", asy
   await expect(response.json()).resolves.toEqual({ error: "Authentication required" });
 });
 
+test("resume upload creation requires authentication", async ({ request }) => {
+  const response = await request.post("/api/resumes", {
+    data: {
+      filename: "synthetic-resume.pdf",
+      mimeType: "application/pdf",
+      byteSize: 1024,
+      aiProcessingConsent: true,
+    },
+  });
+
+  expect(response.status()).toBe(401);
+  await expect(response.json()).resolves.toEqual({ error: "Authentication required" });
+});
+
+test("job feed requires authentication", async ({ request }) => {
+  const response = await request.get("/api/jobs");
+
+  expect(response.status()).toBe(401);
+  await expect(response.json()).resolves.toEqual({ error: "Authentication required" });
+});
+
 test("the dashboard redirects unauthenticated users to sign-in", async ({ page }) => {
   await page.goto("/dashboard");
 
   await expect(page).toHaveURL(/\/sign-in(?:\?.*)?$/);
   await expect(page.locator("main")).toBeVisible();
+});
+
+test("the jobs dashboard redirects unauthenticated users to sign-in", async ({ page }) => {
+  await page.goto("/dashboard/jobs");
+
+  await expect(page).toHaveURL(/\/sign-in(?:\?.*)?$/);
 });
