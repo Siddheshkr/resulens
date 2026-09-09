@@ -1,0 +1,31 @@
+{
+  "description": "Reviewed synthetic ranking fixture for the Phase 4 release gate.",
+  "version": "2026-09-10-v1",
+  "jobs": [
+    { "id": "hybrid-01", "relevant": true, "hardConflict": false, "hybrid": 0.98, "keyword": 0.98 },
+    { "id": "hybrid-02", "relevant": true, "hardConflict": false, "hybrid": 0.95, "keyword": 0.86 },
+    { "id": "hybrid-03", "relevant": true, "hardConflict": false, "hybrid": 0.92, "keyword": 0.72 },
+    { "id": "hybrid-04", "relevant": true, "hardConflict": false, "hybrid": 0.89, "keyword": 0.6 },
+    { "id": "hybrid-05", "relevant": true, "hardConflict": false, "hybrid": 0.84, "keyword": 0.56 },
+    { "id": "hybrid-06", "relevant": true, "hardConflict": false, "hybrid": 0.79, "keyword": 0.51 },
+    { "id": "hybrid-07", "relevant": true, "hardConflict": false, "hybrid": 0.75, "keyword": 0.47 },
+    { "id": "hybrid-08", "relevant": true, "hardConflict": false, "hybrid": 0.71, "keyword": 0.44 },
+    { "id": "hybrid-09", "relevant": true, "hardConflict": false, "hybrid": 0.67, "keyword": 0.4 },
+    { "id": "hybrid-10", "relevant": true, "hardConflict": false, "hybrid": 0.64, "keyword": 0.36 },
+    {
+      "id": "hybrid-11",
+      "relevant": false,
+      "hardConflict": false,
+      "hybrid": 0.25,
+      "keyword": 0.95
+    },
+    {
+      "id": "hybrid-12",
+      "relevant": false,
+      "hardConflict": false,
+      "hybrid": 0.12,
+      "keyword": 0.91
+    },
+    { "id": "hybrid-13", "relevant": false, "hardConflict": true, "hybrid": 0.99, "keyword": 0.99 }
+  ]
+}

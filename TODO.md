@@ -1,6 +1,6 @@
 # ResuLens Work Tracker
 
-Last reviewed: 2026-09-09
+Last reviewed: 2026-09-10
 
 This file is the lightweight, repository-level source of truth for planned and completed work. Product and architecture decisions belong in `context.md`; contributor rules belong in `AGENTS.md`; runtime logs belong in the relevant observability system.
 
@@ -59,6 +59,16 @@ Completed task format:
   - Depends on: provider credentials, one or more curated board/site rows, `JOB_INGESTION_SECRET`, and a deployed app URL
   - Verify: a synthetic or permitted provider run is idempotent, partial provider failure is isolated, stale jobs expire only after a complete run, and `/dashboard/jobs` shows normalized listings without raw payloads
 
+- [ ] Configure and smoke-test the Phase 4 embedding and matching worker
+  - Owner: unassigned
+  - Depends on: hosted Phase 4 migrations, `OPENAI_API_KEY`, `MATCHING_WORKER_SECRET`, a reachable deployed app URL, and synthetic approved resume/job rows
+  - Verify: resume and job queue messages are processed with bounded retries, stale/deleted revisions cannot write vectors, a match run reaches `succeeded`, top-ten explanations cache safely, and no applicant content appears in logs
+
+- [ ] Run the paid-provider release gate for embeddings and explanations
+  - Owner: unassigned
+  - Depends on: worker smoke test and an approved synthetic evaluation corpus
+  - Verify: model latency/token cost, explanation failure fallback, provider rate limits, and HNSW query performance are recorded before enabling public processing
+
 ## Next
 
 - [ ] Replace the process-local upload/retry limiter with distributed rate limiting before public beta
@@ -71,21 +81,8 @@ Completed task format:
   - Depends on: synthetic text/scanned resume corpus and provider budget
   - Verify: schema validity, evidence grounding, confidence calibration, latency, and token-cost baseline are recorded
 
-- [ ] Implement job and resume embedding workflows
-  - Owner: unassigned
-  - Depends on: normalized jobs and approved resume profiles
-  - Verify: queued embeddings retry safely and remain synchronized after content changes
-
-- [ ] Implement hard filters, hybrid retrieval, and deterministic scoring
-  - Owner: unassigned
-  - Depends on: embeddings and candidate preferences
-  - Verify: ranking unit tests and representative precision-at-10/nDCG evaluation pass the agreed baseline
-
 ## Later
 
-- [ ] Build the match feed and job detail experience
-- [ ] Add evidence-grounded match explanations
-- [ ] Add save, dismiss, applied, and feedback workflows
 - [ ] Add public-endpoint rate limiting
 - [ ] Add Sentry with PII-safe error and performance reporting
 - [ ] Add automated raw-resume retention and complete account deletion
@@ -182,3 +179,11 @@ When adding a blocker, use this form:
 - [x] Verify hosted Phase 3 RLS policies with Docker-free pgTAP — 2026-09-09
   - Evidence: `supabase/tests/jobs_rls.test.sql` executed against the linked `resulens` project after enabling the `pgtap` extension; `finish(true)` returned successfully for the 12 planned assertions.
   - Verification: synthetic source, company, job, skill, and private-payload rows were confirmed absent after the transaction, proving the test cleanup rollback.
+
+- [x] Implement Phase 4 embedding, matching, explanations, and job actions — 2026-09-10
+  - Evidence: `20260909182331_phase4_matching_foundation.sql`, `20260909185331_phase4_matching_hardening.sql`, `20260909185640_phase4_pending_run_index.sql`, private embedding queue/worker, deterministic scoring service, protected matching/preferences/job APIs, `/dashboard/matches`, and job detail UI.
+  - Verification: `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm run test` (28 passing tests), `npm run build`, and `npm run test:e2e` (11 passing tests). The synthetic ranking fixture passes precision@10/nDCG@10 and hard-conflict gates.
+
+- [x] Verify hosted Phase 4 RLS and schema advisors — 2026-09-10
+  - Evidence: `supabase/tests/matching_rls.test.sql` with 18 synthetic assertions, all rows rolled back; linked migrations applied to `resulens`.
+  - Verification: hosted transaction runner returned `ok 18`; `supabase db lint --linked --schema public --fail-on error` and `supabase db advisors --linked --type all --level error --fail-on error` returned no issues. Local `npm run test:db` remains Docker-dependent and blocked.

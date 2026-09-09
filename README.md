@@ -39,10 +39,12 @@ ResuLens is a resume-first job discovery application. Phase 3 adds the normalize
    existing hosted project, reconcile any older remote migration versions before
    running `supabase db push`.
 
-5. Add the Phase 2 server values from `.env.example`. `OPENAI_API_KEY` is only
-   read by the worker, and `RESUME_WORKER_SECRET` is shared only between the
-   Supabase Edge Function and the internal processing route. Do not expose either
-   value through a `NEXT_PUBLIC_*` variable.
+5. Add the Phase 2 and Phase 4 server values from `.env.example`. `OPENAI_API_KEY`
+   is only read by trusted workers, and `RESUME_WORKER_SECRET` and
+   `MATCHING_WORKER_SECRET` are shared only between their Supabase Edge Function
+   and internal processing route. Do not expose any of them through a
+   `NEXT_PUBLIC_*` variable. The matching worker uses `text-embedding-3-small`
+   by default and stores no OpenAI request content.
 
 6. Deploy the bounded worker after the hosted schema is applied:
 
@@ -55,6 +57,17 @@ ResuLens is a resume-first job discovery application. Phase 3 adds the normalize
    The worker reads at most three messages per invocation from the durable
    `resume_processing` queue, checks deletion state before writing, and leaves
    retryable failures visible in the processing tables.
+
+   Deploy the matching worker separately after the Phase 4 migration:
+
+   ```bash
+   supabase functions deploy process-embeddings
+   supabase secrets set RESULENS_APP_URL=https://your-app.example MATCHING_WORKER_SECRET=replace-me MATCHING_WORKER_BATCH_SIZE=5
+   ```
+
+   Schedule `process-embeddings` every few minutes. It consumes only opaque
+   embedding-job identifiers, retries provider failures up to three times, and
+   checks the current resume/profile or job fingerprint before writing a vector.
 
 7. Configure permitted job sources. Provider credentials remain server-only. Use a trusted Supabase SQL session or an administrative migration to add rows such as:
 
@@ -83,6 +96,9 @@ ResuLens is a resume-first job discovery application. Phase 3 adds the normalize
 
    Open [http://127.0.0.1:3000](http://127.0.0.1:3000), sign in, and open
    [/dashboard](http://127.0.0.1:3000/dashboard) to see the **Scan a resume** card.
+   After a profile is approved and the matching worker has processed its vector,
+   open [/dashboard/matches](http://127.0.0.1:3000/dashboard/matches) to start a
+   versioned match run and review the ranked feed.
    The public landing page does not show the upload control until authentication
    is complete. Use one hostname consistently: Clerk browser sessions for
    `localhost` and `127.0.0.1` are separate during local development. The
@@ -117,4 +133,4 @@ ResuLens is a resume-first job discovery application. Phase 3 adds the normalize
 - The PDF worker validates the signature, MIME type, five-megabyte limit, five-page limit, encryption state, and parser result before extracting text with `unpdf`. Weak extraction is routed to a bounded OpenAI file-input fallback.
 - OpenAI Responses Structured Outputs uses Zod validation, `store: false`, versioned prompts, bounded output, and server-only keys. Extracted profiles store evidence excerpts and confidence, not raw resume text.
 - Profile edits create a new draft version. Approval creates an approved version and clears any future derived-data version so stale embeddings or matches cannot be reused.
-- Job ingestion uses the documented public Adzuna search, Greenhouse Job Board, and Lever Postings endpoints through one bounded adapter contract. Provider HTML is stored as sanitized plain text, provider identity is `(source_id, external_job_id)`, private raw payloads are worker-only, and complete refreshes expire unseen listings. Embeddings, deterministic matching, and evidence-grounded explanations remain intentionally deferred to later phases.
+- Job ingestion uses the documented public Adzuna search, Greenhouse Job Board, and Lever Postings endpoints through one bounded adapter contract. Provider HTML is stored as sanitized plain text, provider identity is `(source_id, external_job_id)`, private raw payloads are worker-only, and complete refreshes expire unseen listings. Phase 4 queues private resume/job embeddings, applies hard eligibility constraints before hybrid retrieval, and stores deterministic, versioned ResuLens match scores with optional grounded explanations.

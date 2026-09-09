@@ -62,6 +62,9 @@ export default async function DashboardPage() {
         <Link href="/dashboard/jobs" className="header-cta">
           Browse jobs
         </Link>
+        <Link href="/dashboard/matches" className="header-link border border-white/10">
+          Match my resume
+        </Link>
         <p className="text-xs text-[var(--quiet)]">Normalized listings from documented sources.</p>
       </div>
 

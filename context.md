@@ -1,6 +1,6 @@
 # ResuLens — Product and Architecture Context
 
-Last reviewed: 2026-09-09
+Last reviewed: 2026-09-10
 
 ## Product
 
@@ -149,6 +149,16 @@ Version numbers above are the approved starting baseline, not permission to skip
 - `/dashboard/jobs` and `/api/jobs` expose only normalized active listings to authenticated users. Empty and provider-failure states are explicit; raw payloads and provider credentials never reach the client.
 - The hosted Phase 3 RLS suite passes through the linked Supabase SQL runner with the `pgtap` extension enabled; its synthetic transaction rolls back cleanly. Local pgTAP still requires Docker Desktop or Podman, which is not part of the user's development setup.
 
+### Phase 4 matching status
+
+- The hosted schema now includes `candidate_preferences`, private resume/job embedding tables, bounded `embedding_jobs`, versioned `match_runs`, `job_matches`, cached `job_match_explanations`, `job_actions`, and `job_feedback`. The linked `resulens` project has the Phase 4 foundation, hardening indexes/deny policies, pending-run uniqueness, and unknown-metadata retrieval migrations applied.
+- Approved resume profiles are converted into bounded professional-content embeddings that intentionally exclude names, email, phone numbers, locations, and raw evidence excerpts. Normalized job content is embedded separately. Supabase Queues carries only opaque embedding-job identifiers; the Edge Function and Node processor retry up to three attempts and re-check deletion, approval version, job status, and content fingerprints immediately before writing derived vectors.
+- The matching service applies explicit country, workplace, role-exclusion, work-authorization, experience, and status constraints before retrieving a union of PostgreSQL full-text and pgvector candidates. Confirmed conflicts are removed; missing provider or profile fields are retained as explicit unknowns. Deterministic scoring uses semantic 40%, skills 25%, role/seniority 15%, location 10%, freshness 5%, and salary 5%, renormalizing only available signals.
+- `/dashboard/matches` and the protected matching APIs provide versioned feed runs, preference controls, score breakdowns labelled **ResuLens match score**, job details, source links, save/dismiss/applied actions, and relevance feedback. Opening a canonical source URL never marks a job as applied. Editing preferences or approving a new profile changes the persisted revision used by the next run.
+- Explanations use OpenAI Responses Structured Outputs with Zod, `store: false`, bounded evidence-only prompts, quote validation, model/prompt/input version hashes, and safe cached failure rows. An explanation failure leaves deterministic ranked results visible.
+- The reviewed synthetic ranking fixture passes the release gate: no hard-conflict result is included, and the hybrid ordering beats the keyword-only baseline on precision@10 and nDCG@10. Hosted Phase 4 RLS transaction tests pass 18 assertions with synthetic rows rolled back; linked security/performance advisors report no error-level findings.
+- Live worker/provider verification remains an external deployment task. Before enabling paid processing, deploy `process-embeddings`, configure `MATCHING_WORKER_SECRET` and a reachable `RESULENS_APP_URL`, schedule the function, run a synthetic approved-resume/job smoke test, and benchmark the HNSW index with representative data.
+
 ## AI Contract
 
 Use the OpenAI Responses API with JSON Schema Structured Outputs and `store: false` for resume processing. Keep the API key server-side.
@@ -229,8 +239,13 @@ Expected core tables:
 - `job_skills`
 - `ingestion_runs`
 - `private.job_posting_payloads` (worker-only raw provider payloads)
+- `resume_embeddings` (service/worker-only derived vectors)
+- `job_posting_embeddings` (service/worker-only derived vectors)
+- `embedding_jobs` (service/worker-only retry ledger)
 - `match_runs`
 - `job_matches`
+- `job_match_explanations`
+- `job_actions`
 - `job_feedback`
 - `processing_failures`
 
@@ -242,7 +257,7 @@ Expected indexes include:
 - Unique `(source_id, external_job_id)`
 - Indexes for job status, location, workplace type, seniority, and `posted_at`
 - GIN full-text indexes on normalized job content
-- HNSW vector indexes after representative data and query benchmarks exist
+- HNSW vector indexes after representative data and query benchmarks exist; the initial index is present, but production tuning is deferred until the live corpus is representative
 
 ## Security and Privacy Invariants
 

@@ -1,7 +1,9 @@
 import { AuthenticationRequiredError, requireUser } from "@/lib/auth/require-user";
 import { PROFILE_PROMPT_VERSION, PROFILE_SCHEMA_VERSION } from "@/lib/resumes/constants";
 import { resumeProfileSchema, calculateAverageConfidence } from "@/lib/resumes/profile-schema";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { enqueueResumeEmbedding } from "@/server/matching/queue";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -90,7 +92,15 @@ export async function POST(_request: Request, context: RouteContext) {
       throw new Error("Could not update the approval status");
     }
 
-    return Response.json({ profile: approved, status: "approved" });
+    let embeddingQueued = false;
+    try {
+      await enqueueResumeEmbedding(createAdminSupabaseClient(), id, userId, approvedVersion);
+      embeddingQueued = true;
+    } catch {
+      // Approval remains valid; the match route can enqueue the derived signal again.
+    }
+
+    return Response.json({ profile: approved, status: "approved", embeddingQueued });
   } catch (error) {
     if (error instanceof AuthenticationRequiredError) {
       return unauthorized();

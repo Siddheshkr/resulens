@@ -8,6 +8,62 @@ export type Database = {
   };
   public: {
     Tables: {
+      candidate_preferences: {
+        Row: {
+          country_codes: string[];
+          created_at: string;
+          maximum_experience_years: number | null;
+          minimum_experience_years: number | null;
+          preferred_locations: string[];
+          revision: number;
+          role_exclusions: string[];
+          salary_currency: string | null;
+          salary_minimum: number | null;
+          updated_at: string;
+          user_id: string;
+          work_authorization_status: string;
+          workplace_types: string[];
+        };
+        Insert: {
+          country_codes?: string[];
+          created_at?: string;
+          maximum_experience_years?: number | null;
+          minimum_experience_years?: number | null;
+          preferred_locations?: string[];
+          revision?: number;
+          role_exclusions?: string[];
+          salary_currency?: string | null;
+          salary_minimum?: number | null;
+          updated_at?: string;
+          user_id: string;
+          work_authorization_status?: string;
+          workplace_types?: string[];
+        };
+        Update: {
+          country_codes?: string[];
+          created_at?: string;
+          maximum_experience_years?: number | null;
+          minimum_experience_years?: number | null;
+          preferred_locations?: string[];
+          revision?: number;
+          role_exclusions?: string[];
+          salary_currency?: string | null;
+          salary_minimum?: number | null;
+          updated_at?: string;
+          user_id?: string;
+          work_authorization_status?: string;
+          workplace_types?: string[];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "candidate_preferences_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["user_id"];
+          },
+        ];
+      };
       clerk_webhook_events: {
         Row: {
           event_id: string;
@@ -55,6 +111,91 @@ export type Database = {
           website_url?: string | null;
         };
         Relationships: [];
+      };
+      embedding_jobs: {
+        Row: {
+          attempt_count: number;
+          available_at: string;
+          completed_at: string | null;
+          created_at: string;
+          id: string;
+          input_tokens: number | null;
+          job_posting_id: string | null;
+          last_error_code: string | null;
+          last_error_message: string | null;
+          latency_ms: number | null;
+          locked_at: string | null;
+          locked_by: string | null;
+          provider_model: string | null;
+          resume_id: string | null;
+          source_version: string;
+          status: string;
+          subject_type: string;
+          user_id: string | null;
+        };
+        Insert: {
+          attempt_count?: number;
+          available_at?: string;
+          completed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          input_tokens?: number | null;
+          job_posting_id?: string | null;
+          last_error_code?: string | null;
+          last_error_message?: string | null;
+          latency_ms?: number | null;
+          locked_at?: string | null;
+          locked_by?: string | null;
+          provider_model?: string | null;
+          resume_id?: string | null;
+          source_version: string;
+          status?: string;
+          subject_type: string;
+          user_id?: string | null;
+        };
+        Update: {
+          attempt_count?: number;
+          available_at?: string;
+          completed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          input_tokens?: number | null;
+          job_posting_id?: string | null;
+          last_error_code?: string | null;
+          last_error_message?: string | null;
+          latency_ms?: number | null;
+          locked_at?: string | null;
+          locked_by?: string | null;
+          provider_model?: string | null;
+          resume_id?: string | null;
+          source_version?: string;
+          status?: string;
+          subject_type?: string;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "embedding_jobs_job_posting_id_fkey";
+            columns: ["job_posting_id"];
+            isOneToOne: false;
+            referencedRelation: "job_postings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "embedding_jobs_resume_id_user_id_fkey";
+            columns: ["resume_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "resumes";
+            referencedColumns: ["id", "user_id"];
+          },
+          {
+            foreignKeyName: "embedding_jobs_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["user_id"];
+          },
+        ];
       };
       ingestion_runs: {
         Row: {
@@ -115,6 +256,316 @@ export type Database = {
           },
         ];
       };
+      job_actions: {
+        Row: {
+          created_at: string;
+          id: string;
+          job_posting_id: string;
+          match_run_id: string | null;
+          state: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          job_posting_id: string;
+          match_run_id?: string | null;
+          state: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          job_posting_id?: string;
+          match_run_id?: string | null;
+          state?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_actions_job_posting_id_fkey";
+            columns: ["job_posting_id"];
+            isOneToOne: false;
+            referencedRelation: "job_postings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "job_actions_match_run_id_fkey";
+            columns: ["match_run_id"];
+            isOneToOne: false;
+            referencedRelation: "match_runs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "job_actions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["user_id"];
+          },
+        ];
+      };
+      job_feedback: {
+        Row: {
+          created_at: string;
+          id: string;
+          job_posting_id: string;
+          label: string;
+          match_run_id: string | null;
+          note: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          job_posting_id: string;
+          label: string;
+          match_run_id?: string | null;
+          note?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          job_posting_id?: string;
+          label?: string;
+          match_run_id?: string | null;
+          note?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_feedback_job_posting_id_fkey";
+            columns: ["job_posting_id"];
+            isOneToOne: false;
+            referencedRelation: "job_postings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "job_feedback_match_run_id_fkey";
+            columns: ["match_run_id"];
+            isOneToOne: false;
+            referencedRelation: "match_runs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "job_feedback_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["user_id"];
+          },
+        ];
+      };
+      job_match_explanations: {
+        Row: {
+          created_at: string;
+          error_code: string | null;
+          error_message: string | null;
+          explanation: Json | null;
+          id: string;
+          input_hash: string;
+          input_tokens: number | null;
+          job_match_id: string;
+          job_posting_id: string;
+          latency_ms: number | null;
+          match_run_id: string;
+          model: string | null;
+          output_tokens: number | null;
+          prompt_version: string;
+          status: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          error_code?: string | null;
+          error_message?: string | null;
+          explanation?: Json | null;
+          id?: string;
+          input_hash: string;
+          input_tokens?: number | null;
+          job_match_id: string;
+          job_posting_id: string;
+          latency_ms?: number | null;
+          match_run_id: string;
+          model?: string | null;
+          output_tokens?: number | null;
+          prompt_version: string;
+          status: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          error_code?: string | null;
+          error_message?: string | null;
+          explanation?: Json | null;
+          id?: string;
+          input_hash?: string;
+          input_tokens?: number | null;
+          job_match_id?: string;
+          job_posting_id?: string;
+          latency_ms?: number | null;
+          match_run_id?: string;
+          model?: string | null;
+          output_tokens?: number | null;
+          prompt_version?: string;
+          status?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_match_explanations_job_match_id_fkey";
+            columns: ["job_match_id"];
+            isOneToOne: false;
+            referencedRelation: "job_matches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "job_match_explanations_job_posting_id_fkey";
+            columns: ["job_posting_id"];
+            isOneToOne: false;
+            referencedRelation: "job_postings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "job_match_explanations_match_run_id_fkey";
+            columns: ["match_run_id"];
+            isOneToOne: false;
+            referencedRelation: "match_runs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "job_match_explanations_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["user_id"];
+          },
+        ];
+      };
+      job_matches: {
+        Row: {
+          created_at: string;
+          eligibility: Json;
+          embedding_model: string | null;
+          evidence: Json;
+          id: string;
+          job_content_fingerprint: string;
+          job_posting_id: string;
+          lexical_score: number | null;
+          match_run_id: string;
+          match_score: number;
+          rank: number;
+          score_breakdown: Json;
+          semantic_score: number | null;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          eligibility: Json;
+          embedding_model?: string | null;
+          evidence?: Json;
+          id?: string;
+          job_content_fingerprint: string;
+          job_posting_id: string;
+          lexical_score?: number | null;
+          match_run_id: string;
+          match_score: number;
+          rank: number;
+          score_breakdown: Json;
+          semantic_score?: number | null;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          eligibility?: Json;
+          embedding_model?: string | null;
+          evidence?: Json;
+          id?: string;
+          job_content_fingerprint?: string;
+          job_posting_id?: string;
+          lexical_score?: number | null;
+          match_run_id?: string;
+          match_score?: number;
+          rank?: number;
+          score_breakdown?: Json;
+          semantic_score?: number | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_matches_job_posting_id_fkey";
+            columns: ["job_posting_id"];
+            isOneToOne: false;
+            referencedRelation: "job_postings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "job_matches_match_run_id_fkey";
+            columns: ["match_run_id"];
+            isOneToOne: false;
+            referencedRelation: "match_runs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "job_matches_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["user_id"];
+          },
+        ];
+      };
+      job_posting_embeddings: {
+        Row: {
+          content_fingerprint: string;
+          created_at: string;
+          embedding: string;
+          input_tokens: number | null;
+          job_posting_id: string;
+          latency_ms: number | null;
+          model: string;
+          updated_at: string;
+        };
+        Insert: {
+          content_fingerprint: string;
+          created_at?: string;
+          embedding: string;
+          input_tokens?: number | null;
+          job_posting_id: string;
+          latency_ms?: number | null;
+          model: string;
+          updated_at?: string;
+        };
+        Update: {
+          content_fingerprint?: string;
+          created_at?: string;
+          embedding?: string;
+          input_tokens?: number | null;
+          job_posting_id?: string;
+          latency_ms?: number | null;
+          model?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_posting_embeddings_job_posting_id_fkey";
+            columns: ["job_posting_id"];
+            isOneToOne: true;
+            referencedRelation: "job_postings";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       job_postings: {
         Row: {
           canonical_url: string;
@@ -130,6 +581,11 @@ export type Database = {
           last_seen_at: string;
           location_text: string | null;
           posted_at: string | null;
+          required_experience_max_years: number | null;
+          required_experience_min_years: number | null;
+          salary_currency: string | null;
+          salary_max: number | null;
+          salary_min: number | null;
           search_document: unknown;
           seniority: string | null;
           source_id: string;
@@ -137,6 +593,7 @@ export type Database = {
           status: string;
           title: string;
           updated_at: string;
+          work_authorization_support: string;
           workplace_type: string;
         };
         Insert: {
@@ -153,6 +610,11 @@ export type Database = {
           last_seen_at?: string;
           location_text?: string | null;
           posted_at?: string | null;
+          required_experience_max_years?: number | null;
+          required_experience_min_years?: number | null;
+          salary_currency?: string | null;
+          salary_max?: number | null;
+          salary_min?: number | null;
           search_document?: unknown;
           seniority?: string | null;
           source_id: string;
@@ -160,6 +622,7 @@ export type Database = {
           status?: string;
           title: string;
           updated_at?: string;
+          work_authorization_support?: string;
           workplace_type?: string;
         };
         Update: {
@@ -176,6 +639,11 @@ export type Database = {
           last_seen_at?: string;
           location_text?: string | null;
           posted_at?: string | null;
+          required_experience_max_years?: number | null;
+          required_experience_min_years?: number | null;
+          salary_currency?: string | null;
+          salary_max?: number | null;
+          salary_min?: number | null;
           search_document?: unknown;
           seniority?: string | null;
           source_id?: string;
@@ -183,6 +651,7 @@ export type Database = {
           status?: string;
           title?: string;
           updated_at?: string;
+          work_authorization_support?: string;
           workplace_type?: string;
         };
         Relationships: [
@@ -285,6 +754,78 @@ export type Database = {
         };
         Relationships: [];
       };
+      match_runs: {
+        Row: {
+          candidate_count: number;
+          completed_at: string | null;
+          created_at: string;
+          embedding_model: string;
+          error_code: string | null;
+          error_message: string | null;
+          explanation_status: string;
+          filter_snapshot: Json;
+          id: string;
+          preferences_revision: number;
+          resume_id: string;
+          resume_profile_version: number;
+          scoring_version: string;
+          source_snapshot_hash: string;
+          status: string;
+          user_id: string;
+        };
+        Insert: {
+          candidate_count?: number;
+          completed_at?: string | null;
+          created_at?: string;
+          embedding_model: string;
+          error_code?: string | null;
+          error_message?: string | null;
+          explanation_status?: string;
+          filter_snapshot?: Json;
+          id?: string;
+          preferences_revision: number;
+          resume_id: string;
+          resume_profile_version: number;
+          scoring_version: string;
+          source_snapshot_hash: string;
+          status?: string;
+          user_id: string;
+        };
+        Update: {
+          candidate_count?: number;
+          completed_at?: string | null;
+          created_at?: string;
+          embedding_model?: string;
+          error_code?: string | null;
+          error_message?: string | null;
+          explanation_status?: string;
+          filter_snapshot?: Json;
+          id?: string;
+          preferences_revision?: number;
+          resume_id?: string;
+          resume_profile_version?: number;
+          scoring_version?: string;
+          source_snapshot_hash?: string;
+          status?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "match_runs_resume_id_user_id_fkey";
+            columns: ["resume_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "resumes";
+            referencedColumns: ["id", "user_id"];
+          },
+          {
+            foreignKeyName: "match_runs_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["user_id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           created_at: string;
@@ -302,6 +843,63 @@ export type Database = {
           user_id?: string;
         };
         Relationships: [];
+      };
+      resume_embeddings: {
+        Row: {
+          content_hash: string;
+          created_at: string;
+          embedding: string;
+          id: string;
+          input_tokens: number | null;
+          latency_ms: number | null;
+          model: string;
+          profile_version: number;
+          resume_id: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          content_hash: string;
+          created_at?: string;
+          embedding: string;
+          id?: string;
+          input_tokens?: number | null;
+          latency_ms?: number | null;
+          model: string;
+          profile_version: number;
+          resume_id: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          content_hash?: string;
+          created_at?: string;
+          embedding?: string;
+          id?: string;
+          input_tokens?: number | null;
+          latency_ms?: number | null;
+          model?: string;
+          profile_version?: number;
+          resume_id?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "resume_embeddings_resume_id_user_id_fkey";
+            columns: ["resume_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "resumes";
+            referencedColumns: ["id", "user_id"];
+          },
+          {
+            foreignKeyName: "resume_embeddings_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["user_id"];
+          },
+        ];
       };
       resume_processing_jobs: {
         Row: {
@@ -532,9 +1130,17 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      ack_embedding_processing: {
+        Args: { p_message_id: number };
+        Returns: boolean;
+      };
       ack_resume_processing: {
         Args: { p_message_id: number };
         Returns: boolean;
+      };
+      enqueue_embedding_processing: {
+        Args: { p_delay_seconds?: number; p_embedding_job_id: string };
+        Returns: number;
       };
       enqueue_resume_processing: {
         Args: {
@@ -544,9 +1150,29 @@ export type Database = {
         };
         Returns: number;
       };
+      read_embedding_processing: {
+        Args: { p_limit?: number; p_visibility_timeout?: number };
+        Returns: Json;
+      };
       read_resume_processing: {
         Args: { p_limit?: number; p_visibility_timeout?: number };
         Returns: Json;
+      };
+      search_job_candidates: {
+        Args: {
+          p_country_codes?: string[];
+          p_limit?: number;
+          p_query?: string;
+          p_resume_embedding?: string;
+          p_role_exclusions?: string[];
+          p_workplace_types?: string[];
+        };
+        Returns: {
+          job_posting_id: string;
+          lexical_score: number;
+          retrieval_source: string;
+          semantic_score: number;
+        }[];
       };
       upsert_job_posting_payload: {
         Args: {

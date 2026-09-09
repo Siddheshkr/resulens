@@ -82,6 +82,16 @@ test("job feed requires authentication", async ({ request }) => {
   await expect(response.json()).resolves.toEqual({ error: "Authentication required" });
 });
 
+test("matching APIs require authentication", async ({ request }) => {
+  const matches = await request.get("/api/matches");
+  expect(matches.status()).toBe(401);
+  await expect(matches.json()).resolves.toEqual({ error: "Authentication required" });
+
+  const preferences = await request.get("/api/preferences");
+  expect(preferences.status()).toBe(401);
+  await expect(preferences.json()).resolves.toEqual({ error: "Authentication required" });
+});
+
 test("the dashboard redirects unauthenticated users to sign-in", async ({ page }) => {
   await page.goto("/dashboard");
 
@@ -91,6 +101,12 @@ test("the dashboard redirects unauthenticated users to sign-in", async ({ page }
 
 test("the jobs dashboard redirects unauthenticated users to sign-in", async ({ page }) => {
   await page.goto("/dashboard/jobs");
+
+  await expect(page).toHaveURL(/\/sign-in(?:\?.*)?$/);
+});
+
+test("the matching dashboard redirects unauthenticated users to sign-in", async ({ page }) => {
+  await page.goto("/dashboard/matches");
 
   await expect(page).toHaveURL(/\/sign-in(?:\?.*)?$/);
 });

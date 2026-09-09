@@ -6,6 +6,7 @@ import { ADZUNA_DEFAULT_PAGE_SIZE_FROM_CONFIG } from "@/server/job-sources/adzun
 import { getJobSourceAdapter } from "@/server/job-sources/registry";
 import { JobSourceError } from "@/server/job-sources/types";
 import type { JobSource, NormalizedJob } from "@/server/job-sources/types";
+import { enqueueJobEmbedding } from "@/server/matching/queue";
 
 const DEFAULT_MAX_PAGES = 5;
 const DEFAULT_PAGE_SIZE = 50;
@@ -137,6 +138,11 @@ async function writeJob(admin: AdminClient, source: JobSource, job: NormalizedJo
     p_content_fingerprint: job.contentFingerprint,
   });
   if (payloadError) throw new Error("Could not save the private provider payload");
+
+  await enqueueJobEmbedding(admin, {
+    id: savedPosting.id,
+    content_fingerprint: job.contentFingerprint,
+  });
 }
 
 async function updateSource(

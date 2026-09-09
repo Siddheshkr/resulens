@@ -27,6 +27,12 @@ export function SiteHeader() {
           >
             Jobs
           </Link>
+          <Link
+            href="/dashboard/matches"
+            className="hidden text-sm font-semibold text-[var(--muted)] transition-colors hover:text-[var(--foreground)] sm:block"
+          >
+            Matches
+          </Link>
           <AuthControls />
         </nav>
       </div>

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 import { AuthenticationRequiredError, requireUser } from "@/lib/auth/require-user";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -54,10 +55,13 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
             A calmer job search.
           </h1>
           <p className="mt-3 max-w-2xl leading-7 text-[var(--muted)]">
-            Search normalized listings from documented job APIs. Matching and explanations arrive
-            after the ingestion foundation is proven.
+            Search normalized listings from documented job APIs, then open the match feed for
+            deterministic ranking and evidence-grounded explanations.
           </p>
         </div>
+        <Link href="/dashboard/matches" className="header-cta">
+          Open match feed
+        </Link>
         <span className="status-pill">{jobs?.length ?? 0} active listings</span>
       </div>
 

@@ -13,5 +13,15 @@ declare namespace NodeJS {
     ADZUNA_APP_KEY?: string;
     ADZUNA_COUNTRY_CODE?: string;
     ADZUNA_DEFAULT_QUERY?: string;
+    OPENAI_API_KEY?: string;
+    OPENAI_RESUME_MODEL?: string;
+    OPENAI_RESUME_ESCALATION_MODEL?: string;
+    OPENAI_EMBEDDING_MODEL?: string;
+    OPENAI_MATCH_EXPLANATION_MODEL?: string;
+    RESUME_WORKER_SECRET?: string;
+    RESUME_WORKER_BATCH_SIZE?: string;
+    RESULENS_APP_URL?: string;
+    MATCHING_WORKER_SECRET?: string;
+    MATCHING_WORKER_BATCH_SIZE?: string;
   }
 }
