@@ -47,28 +47,28 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
   if (error) throw new Error("Could not load jobs");
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="product-page">
+      <div className="page-intro">
         <div>
-          <p className="eyebrow">Job signal</p>
-          <h1 className="mt-3 text-4xl font-black tracking-tight text-[var(--foreground)]">
-            A calmer job search.
-          </h1>
-          <p className="mt-3 max-w-2xl leading-7 text-[var(--muted)]">
+          <p className="signal-label">
+            <span className="signal-dot" aria-hidden="true" />
+            Job signal
+          </p>
+          <h1>A calmer job search.</h1>
+          <p>
             Search normalized listings from documented job APIs, then open the match feed for
             deterministic ranking and evidence-grounded explanations.
           </p>
         </div>
-        <Link href="/dashboard/matches" className="header-cta">
-          Open match feed
-        </Link>
-        <span className="status-pill">{jobs?.length ?? 0} active listings</span>
+        <div className="page-intro-actions">
+          <span className="page-count">{jobs?.length ?? 0} active listings</span>
+          <Link href="/dashboard/matches" className="button-primary">
+            Open Match Feed
+          </Link>
+        </div>
       </div>
 
-      <form
-        className="mt-8 grid gap-3 rounded-2xl border border-white/10 bg-black/20 p-4 sm:grid-cols-[1fr_10rem_10rem_auto]"
-        method="get"
-      >
+      <form className="job-filter-bar" method="get">
         <label className="sr-only" htmlFor="job-search">
           Search jobs
         </label>
@@ -76,8 +76,9 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
           id="job-search"
           name="search"
           defaultValue={search}
-          placeholder="Search title, skills, or location"
-          className="min-h-11 rounded-xl border border-white/15 bg-white/[0.04] px-4 text-sm text-[var(--foreground)] placeholder:text-[var(--quiet)]"
+          placeholder="Try ‘TypeScript’ or ‘product engineer’…"
+          autoComplete="off"
+          className="product-input"
         />
         <label className="sr-only" htmlFor="job-country">
           Country code
@@ -87,8 +88,9 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
           name="country"
           defaultValue={country}
           maxLength={2}
-          placeholder="IN"
-          className="min-h-11 rounded-xl border border-white/15 bg-white/[0.04] px-4 text-sm uppercase text-[var(--foreground)] placeholder:text-[var(--quiet)]"
+          placeholder="e.g. IN…"
+          autoComplete="country"
+          className="product-input uppercase"
         />
         <label className="sr-only" htmlFor="job-workplace">
           Workplace type
@@ -97,7 +99,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
           id="job-workplace"
           name="workplace"
           defaultValue={workplace}
-          className="min-h-11 rounded-xl border border-white/15 bg-white/[0.04] px-4 text-sm text-[var(--foreground)]"
+          className="product-input"
         >
           <option value="">Any workplace</option>
           <option value="remote">Remote</option>
@@ -105,13 +107,13 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
           <option value="onsite">On-site</option>
           <option value="unknown">Not specified</option>
         </select>
-        <button type="submit" className="header-cta min-h-11">
-          Search
+        <button type="submit" className="button-primary">
+          Search Jobs
         </button>
       </form>
 
       {jobs?.length ? (
-        <div className="mt-8 grid gap-4">
+        <div className="job-list">
           {jobs.map((job) => {
             const companyName = Array.isArray(job.companies)
               ? (job.companies[0]?.display_name ?? null)
@@ -120,24 +122,22 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
               ? (job.job_sources[0]?.display_name ?? null)
               : (job.job_sources?.display_name ?? null);
             return (
-              <article key={job.id} className="resume-upload-card !rounded-2xl !p-5">
+              <article key={job.id} className="job-card">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
-                    <p className="eyebrow">
+                    <p className="job-source">
                       {companyName ?? "Company not specified"}
                       {sourceName ? ` · via ${sourceName}` : ""}
                     </p>
-                    <h2 className="mt-2 text-xl font-extrabold tracking-tight text-[var(--foreground)]">
-                      {job.title}
-                    </h2>
+                    <h2>{job.title}</h2>
                   </div>
                   <a
                     href={job.canonical_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="header-link border border-white/15"
+                    className="button-secondary"
                   >
-                    View source
+                    View Source
                   </a>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2 text-xs text-[var(--muted)]">
@@ -156,7 +156,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
                 </p>
                 <p className="mt-4 text-xs text-[var(--quiet)]">
                   {job.posted_at
-                    ? `Posted ${new Date(job.posted_at).toLocaleDateString("en-IN")}`
+                    ? `Posted ${new Intl.DateTimeFormat("en-IN").format(new Date(job.posted_at))}`
                     : "Posting date not provided"}
                 </p>
               </article>
@@ -164,7 +164,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
           })}
         </div>
       ) : (
-        <div className="mt-8 rounded-2xl border border-dashed border-white/15 bg-black/20 px-6 py-12 text-center">
+        <div className="empty-state jobs-empty">
           <p className="text-lg font-bold text-[var(--foreground)]">No normalized listings yet.</p>
           <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-[var(--muted)]">
             Configure an Adzuna query or a curated Greenhouse/Lever board, then run the bounded

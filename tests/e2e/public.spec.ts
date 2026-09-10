@@ -7,7 +7,7 @@ test("the public landing page renders", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: /Your experience already knows where it belongs/i }),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: "Start with your resume" })).toHaveAttribute(
+  await expect(page.getByRole("link", { name: /Start with your resume/i })).toHaveAttribute(
     "href",
     "/sign-up",
   );
@@ -26,9 +26,9 @@ test("the Clerk sign-in form is visible", async ({ page }) => {
     await expect(page.locator("html")).toHaveCSS("color-scheme", "dark");
     await expect(page.locator(".cl-formButtonPrimary")).toHaveCSS(
       "background-color",
-      "rgb(255, 113, 91)",
+      "rgb(255, 255, 255)",
     );
-    await expect(page.locator(".cl-card")).toHaveCSS("background-color", "rgba(17, 18, 22, 0.96)");
+    await expect(page.locator(".cl-card")).toHaveCSS("background-color", "rgb(20, 20, 20)");
   }
 });
 

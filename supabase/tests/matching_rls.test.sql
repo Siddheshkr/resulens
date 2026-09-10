@@ -1,6 +1,6 @@
 begin;
 
-select plan(18);
+select plan(20);
 
 set local role service_role;
 
@@ -154,6 +154,16 @@ select throws_ok(
 select throws_ok(
   $$select count(*) from public.candidate_preferences$$,
   '42501', null, 'anonymous callers cannot read matching preferences'
+);
+
+set local role service_role;
+select throws_ok(
+  $$insert into public.job_actions (user_id, job_posting_id, state, match_run_id) values ('user_b', '00000000-0000-0000-0000-000000000204', 'saved', '00000000-0000-0000-0000-000000000206')$$,
+  '23503', null, 'service code cannot attach an action to another users match run'
+);
+select throws_ok(
+  $$insert into public.job_feedback (user_id, job_posting_id, label, match_run_id) values ('user_b', '00000000-0000-0000-0000-000000000204', 'relevant', '00000000-0000-0000-0000-000000000206')$$,
+  '23503', null, 'service code cannot attach feedback to another users match run'
 );
 
 select finish();

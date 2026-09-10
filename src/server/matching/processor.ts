@@ -33,6 +33,7 @@ type EmbeddingJob = {
   source_version: string;
   attempt_count: number;
   status: string;
+  locked_by: string | null;
 };
 
 async function processResumeEmbedding(
@@ -187,7 +188,9 @@ export async function processEmbeddingJob(embeddingJobId: string, workerId: stri
   const admin = createAdminSupabaseClient();
   const { data: job, error: jobError } = await admin
     .from("embedding_jobs")
-    .select("id,subject_type,resume_id,job_posting_id,user_id,source_version,attempt_count,status")
+    .select(
+      "id,subject_type,resume_id,job_posting_id,user_id,source_version,attempt_count,status,locked_by",
+    )
     .eq("id", embeddingJobId)
     .in("status", ["queued", "processing"])
     .maybeSingle();
@@ -196,7 +199,7 @@ export async function processEmbeddingJob(embeddingJobId: string, workerId: stri
 
   const typedJob = job as EmbeddingJob;
   const attemptCount = Math.min(MAX_ATTEMPTS, typedJob.attempt_count + 1);
-  const { error: lockError } = await admin
+  let lockQuery = admin
     .from("embedding_jobs")
     .update({
       status: "processing",
@@ -204,8 +207,14 @@ export async function processEmbeddingJob(embeddingJobId: string, workerId: stri
       locked_at: new Date().toISOString(),
       locked_by: workerId,
     } satisfies TablesUpdate<"embedding_jobs">)
-    .eq("id", typedJob.id);
+    .eq("id", typedJob.id)
+    .eq("status", typedJob.status);
+  if (typedJob.status === "processing") {
+    lockQuery = lockQuery.eq("locked_by", workerId);
+  }
+  const { data: lockedJob, error: lockError } = await lockQuery.select("id").maybeSingle();
   if (lockError) throw new Error("Could not lock the embedding job");
+  if (!lockedJob) return { status: "idle" as const };
   const startedAt = Date.now();
 
   try {

@@ -41,83 +41,78 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="product-page">
+      <div className="page-intro">
         <div>
-          <p className="eyebrow">Your workspace</p>
-          <h1 className="mt-3 text-4xl font-black tracking-tight text-[var(--foreground)]">
-            Make the next move legible.
-          </h1>
-          <p className="mt-3 max-w-2xl leading-7 text-[var(--muted)]">
+          <p className="signal-label">
+            <span className="signal-dot" aria-hidden="true" />
+            Your workspace
+          </p>
+          <h1>Make the next move legible.</h1>
+          <p>
             Upload a resume, review the structured read, and keep your private profile under your
             control.
           </p>
         </div>
-        <p className="text-xs text-[var(--quiet)]">
+        <p className="page-count">
           {resumes?.length ?? 0} resume{resumes?.length === 1 ? "" : "s"}
         </p>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <Link href="/dashboard/jobs" className="header-cta">
-          Browse jobs
+      <div className="workspace-actions">
+        <Link href="/dashboard/jobs" className="button-primary">
+          Browse Jobs
         </Link>
-        <Link href="/dashboard/matches" className="header-link border border-white/10">
-          Match my resume
+        <Link href="/dashboard/matches" className="button-secondary">
+          Match My Resume
         </Link>
-        <p className="text-xs text-[var(--quiet)]">Normalized listings from documented sources.</p>
+        <p>Normalized listings from documented sources.</p>
       </div>
 
-      <div className="mt-10">
+      <div className="workspace-grid">
         <ResumeUploadCard />
-      </div>
 
-      <section className="mt-10" aria-labelledby="resume-history-title">
-        <div className="flex items-center justify-between gap-4">
+        <section className="workspace-history" aria-labelledby="resume-history-title">
           <div>
             <p className="eyebrow">Private history</p>
-            <h2
-              id="resume-history-title"
-              className="mt-2 text-2xl font-extrabold tracking-tight text-[var(--foreground)]"
-            >
-              Your scans
-            </h2>
+            <h2 id="resume-history-title">Your scans</h2>
           </div>
-        </div>
-        {resumes?.length ? (
-          <div className="mt-5 grid gap-3">
-            {resumes.map((resume) => (
-              <Link
-                key={resume.id}
-                href={`/dashboard/resumes/${resume.id}`}
-                className="resume-history-row"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-[var(--foreground)]">
-                    {resume.original_filename}
-                  </p>
-                  <p className="mt-1 text-xs text-[var(--muted)]">
-                    {resume.page_count ? `${resume.page_count} pages` : "Page count pending"} ·{" "}
-                    {new Date(resume.created_at).toLocaleDateString("en-IN")}
-                  </p>
-                  {resume.error_message ? (
-                    <p className="mt-2 text-xs text-[#ff9285]">{resume.error_message}</p>
-                  ) : null}
-                </div>
-                <span
-                  className={`status-pill ${resume.status === "approved" ? "status-pill-success" : ""}`}
+          {resumes?.length ? (
+            <div className="history-list">
+              {resumes.map((resume) => (
+                <Link
+                  key={resume.id}
+                  href={`/dashboard/resumes/${resume.id}`}
+                  className="resume-history-row"
                 >
-                  {resume.status.replaceAll("_", " ")}
-                </span>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-5 rounded-2xl border border-dashed border-white/15 bg-black/20 px-5 py-8 text-sm text-[var(--muted)]">
-            Your first private scan will appear here.
-          </div>
-        )}
-      </section>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-[var(--foreground)]">
+                      {resume.original_filename}
+                    </p>
+                    <p className="mt-1 text-xs text-[var(--muted)]">
+                      {resume.page_count ? `${resume.page_count} pages` : "Page count pending"} ·{" "}
+                      {new Intl.DateTimeFormat("en-IN").format(new Date(resume.created_at))}
+                    </p>
+                    {resume.error_message ? (
+                      <p className="mt-2 text-xs text-[var(--danger)]">{resume.error_message}</p>
+                    ) : null}
+                  </div>
+                  <span
+                    className={`status-pill ${resume.status === "approved" ? "status-pill-success" : ""}`}
+                  >
+                    {resume.status.replaceAll("_", " ")}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state compact-empty">
+              <strong>No scans yet</strong>
+              <p>Your first private resume scan will appear here.</p>
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

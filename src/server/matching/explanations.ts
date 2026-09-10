@@ -184,6 +184,7 @@ export async function generateMatchExplanation(userId: string, runId: string, jo
     .single();
   if (pendingError || !pending) throw new Error("Could not create the explanation record");
 
+  const startedAt = Date.now();
   try {
     const response = await getOpenAiClient().responses.parse({
       model,
@@ -214,7 +215,7 @@ export async function generateMatchExplanation(userId: string, runId: string, jo
         explanation,
         input_tokens: response.usage?.input_tokens ?? null,
         output_tokens: response.usage?.output_tokens ?? null,
-        latency_ms: null,
+        latency_ms: Date.now() - startedAt,
         error_code: null,
         error_message: null,
       })
@@ -235,6 +236,7 @@ export async function generateMatchExplanation(userId: string, runId: string, jo
             : "explanation_failed",
         error_message:
           "An explanation is temporarily unavailable. The ranked result is still valid.",
+        latency_ms: Date.now() - startedAt,
       })
       .eq("id", pending.id)
       .select("id,status,explanation,error_message")
@@ -261,6 +263,13 @@ export async function generateTopMatchExplanations(userId: string, runId: string
     .order("rank", { ascending: true })
     .limit(MAX_EXPLANATIONS_PER_RUN);
   if (error) throw new Error("Could not load top matches");
+
+  const { error: statusError } = await admin
+    .from("match_runs")
+    .update({ explanation_status: "processing" })
+    .eq("id", runId)
+    .eq("user_id", userId);
+  if (statusError) throw new Error("Could not start top-match explanations");
 
   const results = [];
   for (const match of matches ?? []) {

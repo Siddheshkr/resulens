@@ -34,20 +34,15 @@ Completed task format:
 
 ## Now
 
-- [ ] Run the Phase 1 GitHub Actions workflow from a clean checkout
+- [ ] Push the Phase 1–4 audit fixes and verify GitHub Actions from a clean checkout
   - Owner: unassigned
-  - Depends on: review and push of the Phase 1 changes
-  - Verify: the `quality` and `database` jobs pass with repository-managed configuration; local quality and browser checks are green, but the hosted workflow still requires a push.
+  - Depends on: review and push of the current working-tree changes
+  - Verify: the `quality` and `database` jobs pass; the previous database job failed because local Supabase attempted OIDC discovery against the placeholder Clerk domain, and the tracked test configuration now disables that external lookup.
 
 - [ ] Run a real Clerk email/Google OAuth and webhook delivery smoke test
   - Owner: unassigned
   - Depends on: a Clerk test account, enabled providers, and the deployed webhook URL
   - Verify: sign-in, sign-up, sign-out, and `user.deleted` delivery complete against the configured Clerk instance without exposing secrets
-
-- [ ] Apply the Phase 2 Supabase migration to local/staging environments
-  - Owner: unassigned
-  - Depends on: Docker Desktop or Podman for local Supabase, plus each environment's migration history
-  - Verify: `supabase db push --linked` or the environment's migration workflow applies `20260909102800_create_resume_processing_foundation.sql`, generated types are refreshed, and Supabase security/performance advisors remain clean
 
 - [ ] Configure and smoke-test the Phase 2 worker path
   - Owner: unassigned
@@ -92,10 +87,7 @@ Completed task format:
 
 ## Blocked
 
-- [ ] Run local Supabase pgTAP tests
-  - Blocked since: 2026-09-08
-  - Reason: verified again on 2026-09-09, `npm run test:db` cannot connect to the local Postgres service at `127.0.0.1:54322`; Docker Desktop or Podman is not installed/running in this environment.
-  - Needs: Docker Desktop or Podman, then `supabase start` and `npm run test:db`
+No current source-level blocker. Local Docker is optional for this developer workflow because the linked hosted pgTAP suites run transactionally and roll back their synthetic fixtures; GitHub Actions remains the clean-checkout local-stack gate after these fixes are pushed.
 
 When adding a blocker, use this form:
 
@@ -107,6 +99,10 @@ When adding a blocker, use this form:
 ```
 
 ## Completed
+
+- [x] Establish and apply the ResuLens interface system across the application — 2026-09-10
+  - Evidence: `design.md` adapts the supplied Framer analysis into ResuLens-specific color, type, layout, component, responsive, content, and accessibility rules; the landing, navigation, Clerk auth, dashboard, upload, resume review, job feed/detail, and match feed now use the same dark instrument system.
+  - Verification: Node 24 formatting, lint, strict TypeScript, unit tests, production build, and Playwright checks pass; signed-in landing, dashboard, jobs, and matches were visually reviewed at desktop and mobile widths with no application console errors.
 
 - [x] Define the initial ResuLens product, workflow, stack, architecture, security boundaries, and delivery plan — 2026-09-08
   - Evidence: `context.md`
@@ -186,4 +182,8 @@ When adding a blocker, use this form:
 
 - [x] Verify hosted Phase 4 RLS and schema advisors — 2026-09-10
   - Evidence: `supabase/tests/matching_rls.test.sql` with 18 synthetic assertions, all rows rolled back; linked migrations applied to `resulens`.
-  - Verification: hosted transaction runner returned `ok 18`; `supabase db lint --linked --schema public --fail-on error` and `supabase db advisors --linked --type all --level error --fail-on error` returned no issues. Local `npm run test:db` remains Docker-dependent and blocked.
+  - Verification: hosted transaction runner returned `ok 18`; `supabase db lint --linked --schema public --fail-on error` and `supabase db advisors --linked --type all --level error --fail-on error` returned no issues. Local `npm run test:db` remains an optional Docker-backed mirror.
+
+- [x] Audit and harden the Phase 1–4 implementation — 2026-09-10
+  - Evidence: fixed Clerk-authenticated local routing across `localhost` and `127.0.0.1`; made local Supabase CI independent of placeholder OIDC discovery; bounded embedding-worker retry persistence; added conditional worker locking; prevented cross-user/cross-job match references in application and database layers; reduced match polling below its rate limit; recorded explanation latency/status; restored editing of approved profile versions; and suppressed root hydration noise introduced by browser extensions.
+  - Verification: Node 24 `npm run format:check`, `npm run lint`, `npm run typecheck`, 31 Vitest tests, production build, and 11 Playwright tests pass. Signed-in Dashboard, Jobs, and Matches pages render in Brave. Hosted migration histories are synchronized through `20260910074007`; matching pgTAP reaches `ok 20`, linked database lint reports no errors, security advisors report no findings, and the production dependency audit reports zero vulnerabilities.

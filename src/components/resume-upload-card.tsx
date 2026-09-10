@@ -107,31 +107,37 @@ export function ResumeUploadCard() {
   return (
     <form
       onSubmit={submitUpload}
-      className="resume-upload-card"
+      className="resume-upload-card upload-instrument"
       aria-labelledby="resume-upload-title"
     >
-      <div>
-        <p className="eyebrow">Private intake</p>
-        <h2
-          id="resume-upload-title"
-          className="mt-2 text-2xl font-extrabold tracking-tight text-[var(--foreground)]"
-        >
-          Scan a resume
-        </h2>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--muted)]">
-          Upload a PDF up to 5 MB and 5 pages. ResuLens extracts a draft profile for you to review
-          before matching.
+      <div className="upload-heading">
+        <p className="signal-label">
+          <span className="signal-dot" aria-hidden="true" />
+          Private intake
+        </p>
+        <h2 id="resume-upload-title">Scan a resume</h2>
+        <p>
+          Upload a PDF up to 5&nbsp;MB and 5 pages. You review the extracted profile before it can
+          shape a match.
         </p>
       </div>
 
-      <label
-        className="mt-6 block text-sm font-semibold text-[var(--foreground)]"
-        htmlFor="resume-file"
-      >
-        Resume PDF
+      <label className="file-drop" htmlFor="resume-file">
+        <span className="file-drop-icon" aria-hidden="true">
+          PDF
+        </span>
+        <span className="file-drop-copy">
+          <strong>{file ? file.name : "Choose a resume PDF"}</strong>
+          <small>
+            {file
+              ? `${new Intl.NumberFormat("en-IN").format(file.size)} bytes selected`
+              : "Private upload · 5 pages maximum"}
+          </small>
+        </span>
         <input
           id="resume-file"
-          className="mt-2 block w-full cursor-pointer rounded-xl border border-dashed border-white/20 bg-black/25 px-4 py-4 text-sm text-[var(--muted)] file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--brand)] file:px-3 file:py-2 file:text-xs file:font-bold file:text-black"
+          name="resume"
+          className="sr-only"
           type="file"
           accept="application/pdf,.pdf"
           onChange={(event) => setFile(event.target.files?.[0] ?? null)}
@@ -139,13 +145,11 @@ export function ResumeUploadCard() {
         />
       </label>
 
-      <label
-        className="mt-4 flex items-start gap-3 text-sm leading-6 text-[var(--muted)]"
-        htmlFor="resume-consent"
-      >
+      <label className="consent-row" htmlFor="resume-consent">
         <input
           id="resume-consent"
-          className="mt-1 size-4 accent-[var(--brand)]"
+          className="mt-1 size-4"
+          name="ai-processing-consent"
           type="checkbox"
           checked={consent}
           onChange={(event) => setConsent(event.target.checked)}
@@ -158,18 +162,18 @@ export function ResumeUploadCard() {
       </label>
 
       {message ? (
-        <p className="mt-4 text-sm text-[#ffad9f]" role="status">
+        <p className="form-message" role="status" aria-live="polite">
           {message}
         </p>
       ) : null}
       {error ? (
-        <p className="mt-4 text-sm text-[#ff9285]" role="alert">
+        <p className="form-error" role="alert">
           {error}
         </p>
       ) : null}
 
-      <button className="header-cta mt-6 min-h-11 px-5" type="submit" disabled={busy}>
-        {busy ? "Preparing secure scan…" : "Upload and scan"}
+      <button className="button-primary upload-submit" type="submit" disabled={busy}>
+        {busy ? "Preparing Secure Scan…" : "Upload & Scan"}
       </button>
     </form>
   );

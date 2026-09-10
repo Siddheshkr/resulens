@@ -3,6 +3,12 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import {
+  MATCH_POLL_ATTEMPTS,
+  MATCH_POLL_INTERVAL_MS,
+  shouldResumePendingMatch,
+} from "@/lib/matching/polling";
+
 type JsonValue =
   string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue | undefined };
 
@@ -184,23 +190,31 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
         throw new Error(payload.error ?? "Could not start matching.");
       let current = await loadRun(payload.runId);
       let attempts = 0;
-      while (current.run.status === "embedding_pending" && attempts < 20) {
+      while (current.run.status === "embedding_pending" && attempts < MATCH_POLL_ATTEMPTS) {
         attempts += 1;
-        setMessage(`Preparing your private matching signal… check ${attempts} of 20`);
-        await new Promise((resolve) => window.setTimeout(resolve, 2_500));
-        const retryResponse = await fetch("/api/matches", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ resumeId }),
-        });
-        const retryPayload = (await retryResponse.json()) as {
-          runId?: string;
-          error?: string;
-        };
-        if (!retryResponse.ok || !retryPayload.runId) {
-          throw new Error(retryPayload.error ?? "Matching is still processing.");
+        setMessage(
+          `Preparing your private matching signal… check ${attempts} of ${MATCH_POLL_ATTEMPTS}`,
+        );
+        await new Promise((resolve) => window.setTimeout(resolve, MATCH_POLL_INTERVAL_MS));
+        current = await loadRun(payload.runId);
+
+        // Creating a run is rate limited. Poll its read-only status frequently, but only
+        // ask the server to resume deterministic ranking every fourth check.
+        if (current.run.status === "embedding_pending" && shouldResumePendingMatch(attempts)) {
+          const retryResponse = await fetch("/api/matches", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ resumeId }),
+          });
+          const retryPayload = (await retryResponse.json()) as {
+            runId?: string;
+            error?: string;
+          };
+          if (!retryResponse.ok || !retryPayload.runId) {
+            throw new Error(retryPayload.error ?? "Matching is still processing.");
+          }
+          current = await loadRun(retryPayload.runId);
         }
-        current = await loadRun(retryPayload.runId);
       }
       setMessage(
         current.run.status === "succeeded"
@@ -298,34 +312,32 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
-      <div className="flex flex-wrap items-end justify-between gap-5">
+    <div className="product-page">
+      <div className="page-intro">
         <div>
-          <p className="eyebrow">Match intelligence</p>
-          <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-tight text-[var(--foreground)] sm:text-5xl">
-            A shortlist you can actually audit.
-          </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--muted)]">
+          <p className="signal-label">
+            <span className="signal-dot" aria-hidden="true" />
+            Match intelligence
+          </p>
+          <h1>A shortlist you can actually audit.</h1>
+          <p>
             ResuLens applies hard eligibility constraints first, then combines full-text and vector
             retrieval. Scores are product signals — never hiring decisions.
           </p>
         </div>
-        <span className="status-pill">ResuLens match scores</span>
+        <span className="page-count">ResuLens match scores</span>
       </div>
 
-      <section className="mt-8 resume-upload-card" aria-labelledby="match-controls-title">
+      <section className="match-controls" aria-labelledby="match-controls-title">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="eyebrow">Control the signal</p>
-            <h2
-              id="match-controls-title"
-              className="mt-2 text-xl font-extrabold text-[var(--foreground)]"
-            >
+            <h2 id="match-controls-title" className="match-controls-title">
               Match preferences
             </h2>
           </div>
-          <Link href="/dashboard" className="header-link border border-white/10">
-            Review resumes
+          <Link href="/dashboard" className="button-secondary">
+            Review Resumes
           </Link>
         </div>
         {approvedResumes.length ? (
@@ -333,7 +345,8 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
             <label className="text-xs font-bold text-[var(--muted)]">
               Approved resume
               <select
-                className="mt-2 min-h-11 w-full rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-[var(--foreground)]"
+                name="resume-id"
+                className="product-input mt-2 w-full"
                 value={resumeId}
                 onChange={(event) => {
                   setResumeId(event.target.value);
@@ -351,7 +364,8 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
             <label className="text-xs font-bold text-[var(--muted)]">
               Countries (ISO codes)
               <input
-                className="mt-2 min-h-11 w-full rounded-xl border border-white/15 bg-black/30 px-3 text-sm uppercase text-[var(--foreground)]"
+                name="country-codes"
+                className="product-input mt-2 w-full uppercase"
                 value={inputValue(preferences.countryCodes)}
                 onChange={(event) =>
                   setPreferences((current) => ({
@@ -362,14 +376,16 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
                       .filter(Boolean),
                   }))
                 }
-                placeholder="IN, US"
+                placeholder="e.g. IN, US…"
+                autoComplete="off"
                 disabled={busy}
               />
             </label>
             <label className="text-xs font-bold text-[var(--muted)]">
               Preferred locations
               <input
-                className="mt-2 min-h-11 w-full rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-[var(--foreground)]"
+                name="preferred-locations"
+                className="product-input mt-2 w-full"
                 value={inputValue(preferences.preferredLocations)}
                 onChange={(event) =>
                   setPreferences((current) => ({
@@ -380,14 +396,16 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
                       .filter(Boolean),
                   }))
                 }
-                placeholder="Bengaluru, Remote"
+                placeholder="e.g. Bengaluru, Remote…"
+                autoComplete="off"
                 disabled={busy}
               />
             </label>
             <label className="text-xs font-bold text-[var(--muted)]">
               Workplace
               <select
-                className="mt-2 min-h-11 w-full rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-[var(--foreground)]"
+                name="workplace-type"
+                className="product-input mt-2 w-full"
                 value={preferences.workplaceTypes[0] ?? ""}
                 onChange={(event) =>
                   setPreferences((current) => ({
@@ -413,11 +431,11 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
         <div className="mt-5 flex flex-wrap items-center gap-3">
           <button
             type="button"
-            className="header-cta min-h-11 px-5"
+            className="button-primary"
             onClick={createRun}
             disabled={busy || !approvedResumes.length}
           >
-            {busy ? "Preparing matches…" : run ? "Refresh matches" : "Find my matches"}
+            {busy ? "Preparing Matches…" : run ? "Refresh Matches" : "Find My Matches"}
           </button>
           <span className="text-xs text-[var(--quiet)]">
             Missing provider data stays unknown and does not lower an otherwise eligible score.
@@ -482,10 +500,10 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
                 const conflicts = asStrings(eligibility?.conflicts);
                 const score = Math.round(match.match_score * 100);
                 return (
-                  <article key={match.id} className="resume-upload-card !rounded-2xl !p-5 sm:!p-6">
+                  <article key={match.id} className="match-card">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="min-w-0">
-                        <p className="eyebrow">
+                        <p className="job-source">
                           #{match.rank} · {relatedName(job.companies) ?? "Company not specified"}
                         </p>
                         <h3 className="mt-2 text-xl font-extrabold tracking-tight text-[var(--foreground)]">
@@ -497,11 +515,9 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
                           {relatedName(job.job_sources) ? ` · ${relatedName(job.job_sources)}` : ""}
                         </p>
                       </div>
-                      <div className="rounded-2xl border border-[#ff715b]/30 bg-[#ff715b]/10 px-4 py-3 text-right">
-                        <p className="text-2xl font-black text-[#ffad9f]">{score}</p>
-                        <p className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-[#ffad9f]">
-                          ResuLens match score
-                        </p>
+                      <div className="match-score-badge">
+                        <p>{score}</p>
+                        <span>ResuLens match score</span>
                       </div>
                     </div>
                     <p className="mt-4 max-w-4xl text-sm leading-7 text-[var(--muted)]">

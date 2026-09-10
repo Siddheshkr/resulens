@@ -362,8 +362,9 @@ enabled = false
 
 # Use Clerk as a third-party provider alongside the Clerk-owned session.
 [auth.third_party.clerk]
-enabled = true
-# Replace this placeholder with the local Clerk instance domain when running Supabase locally.
+enabled = false
+# Local pgTAP does not need external OIDC discovery. Enable this only in an
+# uncommitted local config when testing Clerk tokens against the local stack.
 domain = "example.clerk.accounts.dev"
 
 # OAuth server configuration

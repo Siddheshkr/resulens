@@ -2,6 +2,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 
+import { nextEmbeddingAttempt } from "../_shared/embedding-retry.ts";
+
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const appUrl = Deno.env.get("RESULENS_APP_URL");
@@ -46,12 +48,12 @@ async function resetJob(embeddingJobId: string) {
     .select("attempt_count")
     .eq("id", embeddingJobId)
     .maybeSingle();
-  const attemptCount = Math.min(3, Number(job?.attempt_count ?? 0) + 1);
-  const terminal = attemptCount >= 3;
+  const { attemptCount, terminal } = nextEmbeddingAttempt(Number(job?.attempt_count ?? 0));
   await supabase
     .from("embedding_jobs")
     .update({
       status: terminal ? "failed" : "queued",
+      attempt_count: attemptCount,
       available_at: new Date(Date.now() + (terminal ? 0 : 60_000)).toISOString(),
       locked_at: null,
       locked_by: null,

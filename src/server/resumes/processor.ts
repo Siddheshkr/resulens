@@ -30,6 +30,7 @@ type ProcessingJob = {
   resume_id: string;
   attempt_count: number;
   status: string;
+  locked_by: string | null;
 };
 
 function safeError(error: unknown) {
@@ -92,7 +93,7 @@ export async function processResume(resumeId: string, workerId?: string, jobId?:
 
   let jobQuery = admin
     .from("resume_processing_jobs")
-    .select("id,resume_id,attempt_count,status")
+    .select("id,resume_id,attempt_count,status,locked_by")
     .eq("resume_id", resumeId);
   if (jobId) {
     jobQuery = jobQuery.eq("id", jobId);
@@ -113,12 +114,22 @@ export async function processResume(resumeId: string, workerId?: string, jobId?:
 
   const typedJob = job as ProcessingJob;
   const attemptCount = Math.min(MAX_PROCESSING_ATTEMPTS, typedJob.attempt_count + 1);
-  await updateJob(admin, typedJob.id, {
-    status: "processing",
-    attempt_count: attemptCount,
-    locked_at: new Date().toISOString(),
-    locked_by: resolvedWorkerId,
-  });
+  let lockQuery = admin
+    .from("resume_processing_jobs")
+    .update({
+      status: "processing",
+      attempt_count: attemptCount,
+      locked_at: new Date().toISOString(),
+      locked_by: resolvedWorkerId,
+    })
+    .eq("id", typedJob.id)
+    .eq("status", typedJob.status);
+  if (typedJob.status === "processing") {
+    lockQuery = lockQuery.eq("locked_by", resolvedWorkerId);
+  }
+  const { data: lockedJob, error: lockError } = await lockQuery.select("id").maybeSingle();
+  if (lockError) throw new Error("Could not lock the resume processing job");
+  if (!lockedJob) return { status: "idle" as const };
   await updateResume(admin, resumeId, {
     status: "processing",
     processing_stage: "validating",

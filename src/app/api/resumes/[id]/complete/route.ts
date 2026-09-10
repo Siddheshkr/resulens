@@ -1,12 +1,18 @@
 import { AuthenticationRequiredError, requireUser } from "@/lib/auth/require-user";
 import { checkRateLimit } from "@/lib/security/rate-limit";
+import { MAX_PROCESSING_ATTEMPTS, MAX_RESUME_BYTES } from "@/lib/resumes/constants";
 import { completeResumeUploadSchema } from "@/lib/resumes/requests";
-import { MAX_PROCESSING_ATTEMPTS } from "@/lib/resumes/constants";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { enqueueResumeProcessing } from "@/server/resumes/queue";
+import { z } from "zod";
 
 type RouteContext = { params: Promise<{ id: string }> };
+
+const storageMetadataSchema = z.object({
+  size: z.number().int().positive().max(MAX_RESUME_BYTES),
+  mimetype: z.literal("application/pdf"),
+});
 
 function unauthorized() {
   return Response.json({ error: "Authentication required" }, { status: 401 });
@@ -62,6 +68,27 @@ export async function POST(request: Request, context: RouteContext) {
     }
 
     const admin = createAdminSupabaseClient();
+    const pathSeparator = resume.storage_path.lastIndexOf("/");
+    const storageFolder = resume.storage_path.slice(0, pathSeparator);
+    const storageFilename = resume.storage_path.slice(pathSeparator + 1);
+    const { data: storedObjects, error: storageError } = await admin.storage
+      .from("resumes")
+      .list(storageFolder, { search: storageFilename, limit: 10 });
+    const storedObject = storedObjects?.find((object) => object.name === storageFilename);
+    const storedMetadata = storageMetadataSchema.safeParse(storedObject?.metadata);
+    if (storageError || !storedObject || !storedMetadata.success) {
+      return Response.json(
+        { error: "The PDF upload could not be verified. Upload the file again." },
+        { status: 400 },
+      );
+    }
+    if (storedMetadata.data.size !== resume.byte_size) {
+      return Response.json(
+        { error: "The uploaded file size did not match the selected PDF." },
+        { status: 400 },
+      );
+    }
+
     const { error: updateError } = await admin
       .from("resumes")
       .update({

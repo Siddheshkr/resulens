@@ -7,13 +7,13 @@ import { clerkAppearance } from "@/lib/clerk-appearance";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ResuLens — Find the right opportunities",
+  title: "ResuLens — Read your resume. Find the work.",
   description: "Turn your resume into a focused, explainable job search.",
 };
 
 export const viewport: Viewport = {
   colorScheme: "dark",
-  themeColor: "#070708",
+  themeColor: "#090909",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -30,7 +30,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   );
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
         {publishableKey ? (
           <ClerkProvider

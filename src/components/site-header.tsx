@@ -4,37 +4,28 @@ import { AuthControls } from "@/components/auth-controls";
 
 export function SiteHeader() {
   return (
-    <header className="border-b border-white/10 bg-[#070708]/80 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="flex items-center gap-2" aria-label="ResuLens home">
+    <header className="site-header">
+      <div className="site-header-inner">
+        <Link href="/" className="site-brand" aria-label="ResuLens home" translate="no">
           <span className="brand-mark" aria-hidden="true">
             R
           </span>
-          <span className="text-lg font-extrabold tracking-[-0.04em] text-[var(--foreground)]">
-            ResuLens
-          </span>
+          <span>ResuLens</span>
         </Link>
-        <nav className="flex items-center gap-4" aria-label="Primary navigation">
-          <Link
-            href="/dashboard"
-            className="hidden text-sm font-semibold text-[var(--muted)] transition-colors hover:text-[var(--foreground)] sm:block"
-          >
+        <nav className="site-nav" aria-label="Primary navigation">
+          <Link href="/dashboard" className="site-nav-link">
             Dashboard
           </Link>
-          <Link
-            href="/dashboard/jobs"
-            className="hidden text-sm font-semibold text-[var(--muted)] transition-colors hover:text-[var(--foreground)] sm:block"
-          >
+          <Link href="/dashboard/jobs" className="site-nav-link">
             Jobs
           </Link>
-          <Link
-            href="/dashboard/matches"
-            className="hidden text-sm font-semibold text-[var(--muted)] transition-colors hover:text-[var(--foreground)] sm:block"
-          >
+          <Link href="/dashboard/matches" className="site-nav-link">
             Matches
           </Link>
-          <AuthControls />
         </nav>
+        <div className="site-account">
+          <AuthControls />
+        </div>
       </div>
     </header>
   );

@@ -36,28 +36,24 @@ export default async function JobDetailsPage({ params }: PageProps) {
     ? job.job_sources[0]?.display_name
     : job.job_sources?.display_name;
   return (
-    <div className="mx-auto max-w-4xl px-5 py-12 sm:px-8">
-      <Link href="/dashboard/matches" className="header-link border border-white/10">
-        ← Back to matches
+    <div className="product-page job-detail-page">
+      <Link href="/dashboard/matches" className="button-secondary">
+        Back to Matches
       </Link>
-      <article className="resume-upload-card mt-6">
-        <p className="eyebrow">
+      <article className="job-detail-card">
+        <p className="signal-label">
           {companyName ?? "Company not specified"}
           {sourceName ? ` · ${sourceName}` : ""}
         </p>
-        <h1 className="mt-3 text-4xl font-black tracking-tight text-[var(--foreground)]">
-          {job.title}
-        </h1>
+        <h1>{job.title}</h1>
         <div className="mt-4 flex flex-wrap gap-2 text-xs text-[var(--muted)]">
           <span className="profile-chip">{job.location_text ?? "Location not specified"}</span>
           <span className="profile-chip profile-chip-violet">{job.workplace_type}</span>
           {job.employment_type ? <span className="profile-chip">{job.employment_type}</span> : null}
           {job.seniority ? <span className="profile-chip">{job.seniority}</span> : null}
         </div>
-        <p className="mt-8 whitespace-pre-wrap text-sm leading-8 text-[var(--muted)]">
-          {job.description}
-        </p>
-        <div className="mt-8 grid gap-3 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-[var(--muted)] sm:grid-cols-2">
+        <p className="job-description">{job.description}</p>
+        <div className="job-facts">
           <p>
             <strong className="text-[var(--foreground)]">Work authorization:</strong>{" "}
             {job.work_authorization_support.replaceAll("_", " ")}
@@ -75,16 +71,18 @@ export default async function JobDetailsPage({ params }: PageProps) {
           </p>
           <p>
             <strong className="text-[var(--foreground)]">Posted:</strong>{" "}
-            {job.posted_at ? new Date(job.posted_at).toLocaleDateString("en-IN") : "Not specified"}
+            {job.posted_at
+              ? new Intl.DateTimeFormat("en-IN").format(new Date(job.posted_at))
+              : "Not specified"}
           </p>
         </div>
         <a
           href={job.canonical_url}
           target="_blank"
           rel="noreferrer"
-          className="header-cta mt-8 min-h-11 px-5"
+          className="button-primary job-apply-link"
         >
-          Open canonical application page
+          Open Application Page
         </a>
         <p className="mt-3 text-xs text-[var(--quiet)]">
           Opening the source never marks this job as applied. Use the explicit action in your match

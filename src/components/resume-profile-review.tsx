@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { resumeProfileSchema, type ResumeProfile } from "@/lib/resumes/profile-schema";
 
@@ -12,10 +12,23 @@ type Props = {
 };
 
 export function ResumeProfileReview({ resumeId, profile, approved, onUpdated }: Props) {
-  const [draft, setDraft] = useState(() => JSON.stringify(profile, null, 2));
+  const initialDraft = JSON.stringify(profile, null, 2);
+  const [draft, setDraft] = useState(initialDraft);
+  const [savedDraft, setSavedDraft] = useState(initialDraft);
+  const [editing, setEditing] = useState(!approved);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!editing || draft === savedDraft) return;
+
+    const warnBeforeLeaving = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+    };
+    window.addEventListener("beforeunload", warnBeforeLeaving);
+    return () => window.removeEventListener("beforeunload", warnBeforeLeaving);
+  }, [draft, editing, savedDraft]);
 
   async function save(approve: boolean) {
     setError(null);
@@ -63,11 +76,17 @@ export function ResumeProfileReview({ resumeId, profile, approved, onUpdated }: 
           throw new Error(approvePayload.error ?? "Could not approve the profile.");
         }
         status = "approved";
-        setDraft(JSON.stringify(approvePayload.profile.profile, null, 2));
+        setEditing(false);
+        const approvedDraft = JSON.stringify(approvePayload.profile.profile, null, 2);
+        setDraft(approvedDraft);
+        setSavedDraft(approvedDraft);
         onUpdated(approvePayload.profile.profile, status);
       } else {
-        setDraft(JSON.stringify(savePayload.profile.profile, null, 2));
+        const updatedDraft = JSON.stringify(savePayload.profile.profile, null, 2);
+        setDraft(updatedDraft);
+        setSavedDraft(updatedDraft);
         onUpdated(savePayload.profile.profile, status);
+        setEditing(true);
       }
       setMessage(
         status === "approved"
@@ -109,11 +128,12 @@ export function ResumeProfileReview({ resumeId, profile, approved, onUpdated }: 
         Structured profile
         <textarea
           id="profile-json"
-          className="mt-2 min-h-[32rem] w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-4 font-mono text-xs leading-6 text-[var(--foreground)]"
+          className="profile-json-editor"
+          name="profile-json"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           spellCheck={false}
-          disabled={busy || approved}
+          disabled={busy || (approved && !editing)}
         />
       </label>
 
@@ -133,26 +153,40 @@ export function ResumeProfileReview({ resumeId, profile, approved, onUpdated }: 
         </p>
       ) : null}
 
-      {!approved ? (
+      {approved && !editing ? (
+        <button
+          className="button-secondary mt-6"
+          type="button"
+          onClick={() => {
+            setEditing(true);
+            setMessage(
+              "Editing creates a draft and invalidates older matching signals when saved.",
+            );
+          }}
+          disabled={busy}
+        >
+          Edit Approved Profile
+        </button>
+      ) : (
         <div className="mt-6 flex flex-wrap gap-3">
           <button
-            className="header-link border border-white/10 px-5"
+            className="button-secondary"
             type="button"
             onClick={() => void save(false)}
             disabled={busy}
           >
-            {busy ? "Saving…" : "Save draft"}
+            {busy ? "Saving…" : "Save Draft"}
           </button>
           <button
-            className="header-cta min-h-11 px-5"
+            className="button-primary"
             type="button"
             onClick={() => void save(true)}
             disabled={busy}
           >
-            Approve profile
+            {approved ? "Save & Approve New Version" : "Approve Profile"}
           </button>
         </div>
-      ) : null}
+      )}
     </section>
   );
 }

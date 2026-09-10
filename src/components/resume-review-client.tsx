@@ -49,7 +49,7 @@ function statusCopy(resume: ResumeSummary) {
   if (resume.status === "approved") {
     return {
       title: "Profile approved",
-      description: "This resume is ready for matching in the next phase.",
+      description: "This profile version is ready for matching and can still be corrected safely.",
     };
   }
   return {
@@ -126,19 +126,17 @@ export function ResumeReviewClient({ initialResume, initialProfile }: Props) {
   const copy = statusCopy(resume);
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-10 sm:px-8 sm:py-14">
-      <Link
-        href="/dashboard"
-        className="text-sm font-semibold text-[var(--muted)] hover:text-[var(--foreground)]"
-      >
-        ← Back to workspace
+    <div className="product-page resume-review-page">
+      <Link href="/dashboard" className="button-secondary">
+        Back to Workspace
       </Link>
       <div className="mt-8 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="eyebrow">Resume scan</p>
-          <h1 className="mt-2 break-all text-3xl font-extrabold tracking-tight text-[var(--foreground)]">
-            {resume.original_filename}
-          </h1>
+          <p className="signal-label">
+            <span className="signal-dot" aria-hidden="true" />
+            Resume scan
+          </p>
+          <h1 className="resume-review-title">{resume.original_filename}</h1>
           <p className="mt-2 text-sm text-[var(--muted)]">
             {resume.page_count
               ? `${resume.page_count} page${resume.page_count === 1 ? "" : "s"}`
@@ -146,18 +144,15 @@ export function ResumeReviewClient({ initialResume, initialProfile }: Props) {
           </p>
         </div>
         <button
-          className="header-link border border-white/10 px-4"
+          className="button-secondary destructive-button"
           type="button"
           onClick={() => void deleteResume()}
         >
-          Delete resume
+          Delete Resume
         </button>
       </div>
 
-      <div
-        className="mt-8 rounded-3xl border border-white/10 bg-[var(--card)] p-6 sm:p-8"
-        aria-live="polite"
-      >
+      <div className="resume-status-panel" aria-live="polite">
         <div className="flex items-start gap-4">
           <span className={`processing-dot processing-dot-${resume.status}`} aria-hidden="true" />
           <div>

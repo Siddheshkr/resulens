@@ -30,6 +30,13 @@ import type { PreferencesInput } from "@/server/matching/requests";
 
 type AdminClient = SupabaseClient<Database>;
 
+export class InvalidMatchReferenceError extends Error {
+  constructor() {
+    super("The selected match is not available for this job.");
+    this.name = "InvalidMatchReferenceError";
+  }
+}
+
 type ApprovedResume = {
   id: string;
   status: string;
@@ -463,6 +470,24 @@ export async function getLatestMatchRun(userId: string, resumeId?: string) {
   return data ? getMatchRun(userId, data.id) : null;
 }
 
+async function validateMatchReference(
+  admin: AdminClient,
+  userId: string,
+  jobPostingId: string,
+  matchRunId?: string,
+) {
+  if (!matchRunId) return;
+  const { data, error } = await admin
+    .from("job_matches")
+    .select("id")
+    .eq("match_run_id", matchRunId)
+    .eq("user_id", userId)
+    .eq("job_posting_id", jobPostingId)
+    .maybeSingle();
+  if (error) throw new Error("Could not validate the matching reference");
+  if (!data) throw new InvalidMatchReferenceError();
+}
+
 export async function saveJobAction(
   userId: string,
   jobPostingId: string,
@@ -470,6 +495,7 @@ export async function saveJobAction(
   matchRunId?: string,
 ) {
   const admin = createAdminSupabaseClient();
+  await validateMatchReference(admin, userId, jobPostingId, matchRunId);
   const { data, error } = await admin
     .from("job_actions")
     .upsert(
@@ -500,6 +526,7 @@ export async function saveJobFeedback(
   matchRunId?: string,
 ) {
   const admin = createAdminSupabaseClient();
+  await validateMatchReference(admin, userId, jobPostingId, matchRunId);
   const { data, error } = await admin
     .from("job_feedback")
     .upsert(

@@ -1,7 +1,11 @@
 import { AuthenticationRequiredError, requireUser } from "@/lib/auth/require-user";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { jobActionSchema } from "@/server/matching/requests";
-import { deleteJobAction, saveJobAction } from "@/server/matching/service";
+import {
+  deleteJobAction,
+  InvalidMatchReferenceError,
+  saveJobAction,
+} from "@/server/matching/service";
 import { z } from "zod";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -30,6 +34,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     return Response.json({ action });
   } catch (error) {
     if (error instanceof AuthenticationRequiredError) return unauthorized();
+    if (error instanceof InvalidMatchReferenceError) {
+      return Response.json({ error: error.message }, { status: 409 });
+    }
     return Response.json({ error: "Could not save the job action." }, { status: 503 });
   }
 }

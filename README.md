@@ -1,6 +1,6 @@
 # ResuLens
 
-ResuLens is a resume-first job discovery application. Phase 3 adds the normalized job-ingestion foundation on top of the private resume workflow: documented Adzuna, Greenhouse, and Lever adapters, idempotent refresh runs, private raw payload storage, and an authenticated searchable job feed.
+ResuLens is a resume-first job discovery application. Phases 1–4 provide Clerk authentication, private resume processing, normalized job ingestion, and deterministic, explainable resume-to-job matching.
 
 ## Requirements
 
@@ -30,7 +30,12 @@ ResuLens is a resume-first job discovery application. Phase 3 adds the normalize
    npm run test:db
    ```
 
-   The local config keeps the Clerk domain as an environment-specific placeholder so real provider domains are not committed.
+   The tracked local config disables Clerk OIDC discovery so database tests are
+   deterministic and do not call an external placeholder domain. To test real
+   Clerk tokens against local Supabase, enable `[auth.third_party.clerk]` only in
+   an uncommitted local config and replace the placeholder with the exact Clerk
+   instance domain. The hosted Clerk connection is configured in the Supabase
+   dashboard and is unaffected by this local setting.
 
    The Phase 2 migration creates the private `resumes` bucket, `resumes`,
    `resume_profiles`, and `resume_processing_jobs` tables, the durable
@@ -102,12 +107,11 @@ ResuLens is a resume-first job discovery application. Phase 3 adds the normalize
    The public landing page does not show the upload control until authentication
    is complete. Use one hostname consistently: Clerk browser sessions for
    `localhost` and `127.0.0.1` are separate during local development. The
-   default development command uses Next's webpack path for stable Clerk
-   middleware behavior and
-   binds to IPv4 loopback so local browsers and the in-app browser can reach it
-   consistently. For testing from another device on the same network,
-   use `npm run dev:lan` and add that machine's origin to the Clerk development
-   instance allowed origins.
+   default development command uses Next's webpack path and accepts both
+   `localhost` and `127.0.0.1`, which Clerk's development handshake needs when
+   protecting server-rendered routes. For testing from another device on the
+   same network, use `npm run dev:lan` and add that machine's origin to the Clerk
+   development instance allowed origins.
 
 ## Scripts
 

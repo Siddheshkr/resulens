@@ -1,7 +1,7 @@
 import { AuthenticationRequiredError, requireUser } from "@/lib/auth/require-user";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { jobFeedbackSchema } from "@/server/matching/requests";
-import { saveJobFeedback } from "@/server/matching/service";
+import { InvalidMatchReferenceError, saveJobFeedback } from "@/server/matching/service";
 import { z } from "zod";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -36,6 +36,9 @@ export async function POST(request: Request, context: RouteContext) {
     return Response.json({ feedback });
   } catch (error) {
     if (error instanceof AuthenticationRequiredError) return unauthorized();
+    if (error instanceof InvalidMatchReferenceError) {
+      return Response.json({ error: error.message }, { status: 409 });
+    }
     return Response.json({ error: "Could not save feedback." }, { status: 503 });
   }
 }
