@@ -92,6 +92,17 @@ test("matching APIs require authentication", async ({ request }) => {
   await expect(preferences.json()).resolves.toEqual({ error: "Authentication required" });
 });
 
+test("account lifecycle API requires authentication", async ({ request }) => {
+  const settings = await request.get("/api/account");
+  expect(settings.status()).toBe(401);
+  await expect(settings.json()).resolves.toEqual({ error: "Authentication required" });
+
+  const deletion = await request.delete("/api/account", {
+    data: { confirmation: "DELETE" },
+  });
+  expect(deletion.status()).toBe(401);
+});
+
 test("the dashboard redirects unauthenticated users to sign-in", async ({ page }) => {
   await page.goto("/dashboard");
 
@@ -108,5 +119,10 @@ test("the jobs dashboard redirects unauthenticated users to sign-in", async ({ p
 test("the matching dashboard redirects unauthenticated users to sign-in", async ({ page }) => {
   await page.goto("/dashboard/matches");
 
+  await expect(page).toHaveURL(/\/sign-in(?:\?.*)?$/);
+});
+
+test("account settings redirects unauthenticated users to sign-in", async ({ page }) => {
+  await page.goto("/dashboard/settings");
   await expect(page).toHaveURL(/\/sign-in(?:\?.*)?$/);
 });

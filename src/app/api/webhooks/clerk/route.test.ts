@@ -3,12 +3,16 @@ import { Webhook } from "svix";
 import { NextRequest } from "next/server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { requestAccountDeletion } from "@/server/accounts/cleanup";
 
 import { POST } from "@/app/api/webhooks/clerk/route";
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminSupabaseClient: vi.fn(),
+}));
+vi.mock("@/server/accounts/cleanup", () => ({
+  requestAccountDeletion: vi.fn(),
 }));
 
 const secret = "whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw";
@@ -28,20 +32,8 @@ function signedRequest(eventId: string, payload: string) {
   });
 }
 
-function createAdminMock(options?: {
-  deleteFailures?: number;
-  duplicate?: boolean;
-  processedAt?: string | null;
-}) {
+function createAdminMock(options?: { duplicate?: boolean; processedAt?: string | null }) {
   let insertCall = 0;
-  let deleteCall = 0;
-  const profilesDelete = vi.fn().mockReturnValue({
-    eq: vi.fn().mockImplementation(async () => {
-      const error =
-        deleteCall++ < (options?.deleteFailures ?? 0) ? { code: "temporary_failure" } : null;
-      return { error };
-    }),
-  });
   const eventsUpdate = vi.fn().mockReturnValue({
     eq: vi.fn().mockResolvedValue({ error: null }),
   });
@@ -58,10 +50,7 @@ function createAdminMock(options?: {
   });
   const admin = {
     from: vi.fn((table: string) => {
-      if (table === "profiles") {
-        return { delete: profilesDelete };
-      }
-
+      void table;
       return {
         insert: vi.fn().mockImplementation(async () => {
           insertCall += 1;
@@ -75,13 +64,14 @@ function createAdminMock(options?: {
     }),
   };
 
-  return { admin, eventsSelect, eventsUpdate, profilesDelete };
+  return { admin, eventsSelect, eventsUpdate };
 }
 
 describe("POST /api/webhooks/clerk", () => {
   beforeEach(() => {
     vi.stubEnv("CLERK_WEBHOOK_SIGNING_SECRET", secret);
     vi.mocked(createAdminSupabaseClient).mockReset();
+    vi.mocked(requestAccountDeletion).mockReset().mockResolvedValue({ status: "complete" });
   });
 
   afterEach(() => {
@@ -118,7 +108,7 @@ describe("POST /api/webhooks/clerk", () => {
   });
 
   it("processes a valid deletion event and treats a processed retry as idempotent", async () => {
-    const { admin, profilesDelete, eventsUpdate, eventsSelect } = createAdminMock();
+    const { admin, eventsUpdate, eventsSelect } = createAdminMock();
     vi.mocked(createAdminSupabaseClient).mockReturnValue(
       admin as unknown as ReturnType<typeof createAdminSupabaseClient>,
     );
@@ -131,19 +121,21 @@ describe("POST /api/webhooks/clerk", () => {
     await expect(firstResponse.json()).resolves.toEqual({ received: true });
     expect(secondResponse.status).toBe(200);
     await expect(secondResponse.json()).resolves.toEqual({ received: true, duplicate: true });
-    expect(profilesDelete).toHaveBeenCalledOnce();
+    expect(requestAccountDeletion).toHaveBeenCalledOnce();
     expect(eventsUpdate).toHaveBeenCalledOnce();
     expect(eventsSelect).toHaveBeenCalledOnce();
   });
 
   it("retries deletion when an earlier delivery recorded but did not finish", async () => {
-    const { admin, profilesDelete, eventsUpdate } = createAdminMock({
-      deleteFailures: 1,
+    const { admin, eventsUpdate } = createAdminMock({
       processedAt: null,
     });
     vi.mocked(createAdminSupabaseClient).mockReturnValue(
       admin as unknown as ReturnType<typeof createAdminSupabaseClient>,
     );
+    vi.mocked(requestAccountDeletion)
+      .mockRejectedValueOnce(new Error("temporary"))
+      .mockResolvedValueOnce({ status: "complete" });
     const payload = JSON.stringify({ type: "user.deleted", data: { id: "user_test_123" } });
 
     const firstResponse = await POST(signedRequest("msg_retry", payload));
@@ -152,7 +144,7 @@ describe("POST /api/webhooks/clerk", () => {
     expect(firstResponse.status).toBe(500);
     expect(retryResponse.status).toBe(200);
     await expect(retryResponse.json()).resolves.toEqual({ received: true });
-    expect(profilesDelete).toHaveBeenCalledTimes(2);
+    expect(requestAccountDeletion).toHaveBeenCalledTimes(2);
     expect(eventsUpdate).toHaveBeenCalledOnce();
   });
 });

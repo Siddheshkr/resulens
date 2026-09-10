@@ -34,6 +34,26 @@ Completed task format:
 
 ## Now
 
+- [ ] Deploy and smoke-test all bounded workers in staging (`process-resumes`, `process-embeddings`, `ingest-jobs`, and `maintain-production`)
+  - Owner: unassigned
+  - Depends on: separate staging Clerk/Supabase/OpenAI/provider credentials, a reachable staging app URL, and worker secrets
+  - Verify: synthetic text/scanned resume workflow, ingestion, matching, stalled-task recovery, retention expiry, and no sensitive logs
+
+- [ ] Configure Sentry dashboards and alerts for staging and production
+  - Owner: unassigned
+  - Depends on: Sentry projects, DSNs, source-map auth token, and reviewed alert thresholds
+  - Verify: a synthetic scrubbed event arrives; alerts cover failed/stalled work, stale sources, Clerk errors, incomplete deletion, and AI spend
+
+- [ ] Run the complete staging journey and record latency/cost evidence
+  - Owner: unassigned
+  - Depends on: deployed workers and synthetic staging fixtures
+  - Verify: Clerk login → upload → processing → correction → approval → matches → save/apply → deletion, including forced retry and Storage verification
+
+- [ ] Production launch approval and rollback rehearsal
+  - Owner: unassigned
+  - Depends on: [docs/operations/launch-checklist.md](docs/operations/launch-checklist.md) with every blocking item evidenced
+  - Verify: Vercel production deployment, scheduled Edge Functions, migration record, backup/PITR check, alert links, and rollback target
+
 - [ ] Push the Phase 1–4 audit fixes and verify GitHub Actions from a clean checkout
   - Owner: unassigned
   - Depends on: review and push of the current working-tree changes
@@ -79,11 +99,7 @@ Completed task format:
 ## Later
 
 - [ ] Add public-endpoint rate limiting
-- [ ] Add Sentry with PII-safe error and performance reporting
-- [ ] Add automated raw-resume retention and complete account deletion
-- [ ] Complete mobile, accessibility, failure-state, and no-sensitive-log testing
-- [ ] Create staging and production deployment environments
-- [ ] Define launch readiness, support, and incident procedures
+- [ ] Add distributed public-endpoint rate limiting with an environment-specific Upstash deployment
 
 ## Blocked
 
@@ -187,3 +203,12 @@ When adding a blocker, use this form:
 - [x] Audit and harden the Phase 1–4 implementation — 2026-09-10
   - Evidence: fixed Clerk-authenticated local routing across `localhost` and `127.0.0.1`; made local Supabase CI independent of placeholder OIDC discovery; bounded embedding-worker retry persistence; added conditional worker locking; prevented cross-user/cross-job match references in application and database layers; reduced match polling below its rate limit; recorded explanation latency/status; restored editing of approved profile versions; and suppressed root hydration noise introduced by browser extensions.
   - Verification: Node 24 `npm run format:check`, `npm run lint`, `npm run typecheck`, 31 Vitest tests, production build, and 11 Playwright tests pass. Signed-in Dashboard, Jobs, and Matches pages render in Brave. Hosted migration histories are synchronized through `20260910074007`; matching pgTAP reaches `ok 20`, linked database lint reports no errors, security advisors report no findings, and the production dependency audit reports zero vulnerabilities.
+
+- [x] Implement Phase 5 application readiness and recovery foundations — 2026-09-10
+  - Evidence: onboarding and settings surfaces, selectable raw-PDF retention, account deletion ledger and write-blocking triggers, Clerk session revocation/deletion orchestration, expired-file cleanup, stalled resume/embedding recovery, aggregate operations endpoint, AI cost tracking hooks, Sentry PII scrubbing, global error recovery, mobile Playwright project, and operations/launch documentation.
+  - Verification: `npm run format:check`, `npm run lint`, `npm run typecheck`, 36 Vitest tests, production build, 13 desktop/protected-route Playwright tests, hosted Phase 5 pgTAP transaction (8 assertions), hosted security advisor with no lints, and `npm audit --omit=dev --audit-level=high` with 0 vulnerabilities.
+  - Limitation: live staging workers, provider smoke tests, Sentry dashboard delivery, full authenticated E2E deletion, and production deployment remain in Now and are not marked complete.
+
+- [x] Apply and type-sync the Phase 5 hosted migration — 2026-09-10
+  - Evidence: linked development project `resulens` migration `20260910093759_phase5_production_readiness`, generated public database types, account cleanup table, retention columns, cost columns, and service-role operational snapshot function.
+  - Verification: hosted transaction tests pass with synthetic rows rolled back; hosted security advisor reports no findings. Performance advisor shows only expected unused-index INFO entries before worker traffic.

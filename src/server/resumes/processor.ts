@@ -3,6 +3,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 
 import { extractResumeProfile } from "@/lib/ai/resume-profile";
+import { estimateAiCostMicrousd } from "@/lib/ai/cost";
 import {
   MAX_PROCESSING_ATTEMPTS,
   PROFILE_PROMPT_VERSION,
@@ -233,6 +234,11 @@ export async function processResume(resumeId: string, workerId?: string, jobId?:
       provider_model: result.model,
       input_tokens: result.inputTokens,
       output_tokens: result.outputTokens,
+      estimated_cost_microusd: estimateAiCostMicrousd(
+        result.model,
+        result.inputTokens,
+        result.outputTokens,
+      ),
       latency_ms: Date.now() - startedAt,
       last_error_code: null,
       last_error_message: null,

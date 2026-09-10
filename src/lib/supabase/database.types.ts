@@ -8,6 +8,54 @@ export type Database = {
   };
   public: {
     Tables: {
+      account_deletion_jobs: {
+        Row: {
+          attempt_count: number;
+          available_at: string;
+          clerk_user_deleted_at: string | null;
+          completed_at: string | null;
+          data_deleted_at: string | null;
+          last_error_code: string | null;
+          locked_at: string | null;
+          requested_at: string;
+          source: string;
+          status: string;
+          storage_deleted_at: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          attempt_count?: number;
+          available_at?: string;
+          clerk_user_deleted_at?: string | null;
+          completed_at?: string | null;
+          data_deleted_at?: string | null;
+          last_error_code?: string | null;
+          locked_at?: string | null;
+          requested_at?: string;
+          source: string;
+          status?: string;
+          storage_deleted_at?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          attempt_count?: number;
+          available_at?: string;
+          clerk_user_deleted_at?: string | null;
+          completed_at?: string | null;
+          data_deleted_at?: string | null;
+          last_error_code?: string | null;
+          locked_at?: string | null;
+          requested_at?: string;
+          source?: string;
+          status?: string;
+          storage_deleted_at?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       candidate_preferences: {
         Row: {
           country_codes: string[];
@@ -118,6 +166,7 @@ export type Database = {
           available_at: string;
           completed_at: string | null;
           created_at: string;
+          estimated_cost_microusd: number | null;
           id: string;
           input_tokens: number | null;
           job_posting_id: string | null;
@@ -138,6 +187,7 @@ export type Database = {
           available_at?: string;
           completed_at?: string | null;
           created_at?: string;
+          estimated_cost_microusd?: number | null;
           id?: string;
           input_tokens?: number | null;
           job_posting_id?: string | null;
@@ -158,6 +208,7 @@ export type Database = {
           available_at?: string;
           completed_at?: string | null;
           created_at?: string;
+          estimated_cost_microusd?: number | null;
           id?: string;
           input_tokens?: number | null;
           job_posting_id?: string | null;
@@ -368,6 +419,7 @@ export type Database = {
           created_at: string;
           error_code: string | null;
           error_message: string | null;
+          estimated_cost_microusd: number | null;
           explanation: Json | null;
           id: string;
           input_hash: string;
@@ -387,6 +439,7 @@ export type Database = {
           created_at?: string;
           error_code?: string | null;
           error_message?: string | null;
+          estimated_cost_microusd?: number | null;
           explanation?: Json | null;
           id?: string;
           input_hash: string;
@@ -406,6 +459,7 @@ export type Database = {
           created_at?: string;
           error_code?: string | null;
           error_message?: string | null;
+          estimated_cost_microusd?: number | null;
           explanation?: Json | null;
           id?: string;
           input_hash?: string;
@@ -530,6 +584,7 @@ export type Database = {
           content_fingerprint: string;
           created_at: string;
           embedding: string;
+          estimated_cost_microusd: number | null;
           input_tokens: number | null;
           job_posting_id: string;
           latency_ms: number | null;
@@ -540,6 +595,7 @@ export type Database = {
           content_fingerprint: string;
           created_at?: string;
           embedding: string;
+          estimated_cost_microusd?: number | null;
           input_tokens?: number | null;
           job_posting_id: string;
           latency_ms?: number | null;
@@ -550,6 +606,7 @@ export type Database = {
           content_fingerprint?: string;
           created_at?: string;
           embedding?: string;
+          estimated_cost_microusd?: number | null;
           input_tokens?: number | null;
           job_posting_id?: string;
           latency_ms?: number | null;
@@ -829,16 +886,28 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string;
+          deletion_requested_at: string | null;
+          deletion_status: string;
+          onboarding_completed_at: string | null;
+          raw_file_retention_policy: string;
           updated_at: string;
           user_id: string;
         };
         Insert: {
           created_at?: string;
+          deletion_requested_at?: string | null;
+          deletion_status?: string;
+          onboarding_completed_at?: string | null;
+          raw_file_retention_policy?: string;
           updated_at?: string;
           user_id: string;
         };
         Update: {
           created_at?: string;
+          deletion_requested_at?: string | null;
+          deletion_status?: string;
+          onboarding_completed_at?: string | null;
+          raw_file_retention_policy?: string;
           updated_at?: string;
           user_id?: string;
         };
@@ -849,6 +918,7 @@ export type Database = {
           content_hash: string;
           created_at: string;
           embedding: string;
+          estimated_cost_microusd: number | null;
           id: string;
           input_tokens: number | null;
           latency_ms: number | null;
@@ -862,6 +932,7 @@ export type Database = {
           content_hash: string;
           created_at?: string;
           embedding: string;
+          estimated_cost_microusd?: number | null;
           id?: string;
           input_tokens?: number | null;
           latency_ms?: number | null;
@@ -875,6 +946,7 @@ export type Database = {
           content_hash?: string;
           created_at?: string;
           embedding?: string;
+          estimated_cost_microusd?: number | null;
           id?: string;
           input_tokens?: number | null;
           latency_ms?: number | null;
@@ -907,6 +979,7 @@ export type Database = {
           available_at: string;
           completed_at: string | null;
           created_at: string;
+          estimated_cost_microusd: number | null;
           id: string;
           input_tokens: number | null;
           kind: string;
@@ -926,6 +999,7 @@ export type Database = {
           available_at?: string;
           completed_at?: string | null;
           created_at?: string;
+          estimated_cost_microusd?: number | null;
           id?: string;
           input_tokens?: number | null;
           kind?: string;
@@ -945,6 +1019,7 @@ export type Database = {
           available_at?: string;
           completed_at?: string | null;
           created_at?: string;
+          estimated_cost_microusd?: number | null;
           id?: string;
           input_tokens?: number | null;
           kind?: string;
@@ -1060,6 +1135,8 @@ export type Database = {
           original_filename: string;
           page_count: number | null;
           processing_stage: string;
+          raw_file_delete_after: string | null;
+          raw_file_deleted_at: string | null;
           retry_count: number;
           status: string;
           storage_path: string;
@@ -1084,6 +1161,8 @@ export type Database = {
           original_filename: string;
           page_count?: number | null;
           processing_stage?: string;
+          raw_file_delete_after?: string | null;
+          raw_file_deleted_at?: string | null;
           retry_count?: number;
           status?: string;
           storage_path: string;
@@ -1108,6 +1187,8 @@ export type Database = {
           original_filename?: string;
           page_count?: number | null;
           processing_stage?: string;
+          raw_file_delete_after?: string | null;
+          raw_file_deleted_at?: string | null;
           retry_count?: number;
           status?: string;
           storage_path?: string;
@@ -1149,6 +1230,14 @@ export type Database = {
           p_resume_id: string;
         };
         Returns: number;
+      };
+      get_resulens_operational_snapshot: {
+        Args: {
+          p_stale_source_before: string;
+          p_stalled_before: string;
+          p_usage_since: string;
+        };
+        Returns: Json;
       };
       read_embedding_processing: {
         Args: { p_limit?: number; p_visibility_timeout?: number };

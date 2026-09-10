@@ -1,8 +1,10 @@
 import { verifyWebhook } from "@clerk/nextjs/webhooks";
+import * as Sentry from "@sentry/nextjs";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { requestAccountDeletion } from "@/server/accounts/cleanup";
 
 const ClerkWebhookEventSchema = z.object({
   type: z.string(),
@@ -31,6 +33,7 @@ export async function POST(request: NextRequest) {
     const verifiedEvent = await verifyWebhook(request, { signingSecret: secret });
     event = ClerkWebhookEventSchema.parse(verifiedEvent);
   } catch {
+    Sentry.captureMessage("Clerk webhook verification failed", "warning");
     return Response.json({ error: "Invalid webhook request" }, { status: 400 });
   }
 
@@ -70,9 +73,9 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "Could not record webhook" }, { status: 500 });
   }
 
-  const { error: deleteError } = await admin.from("profiles").delete().eq("user_id", event.data.id);
-
-  if (deleteError) {
+  try {
+    await requestAccountDeletion(event.data.id, "clerk_webhook", admin);
+  } catch {
     return Response.json({ error: "Could not process webhook" }, { status: 500 });
   }
 

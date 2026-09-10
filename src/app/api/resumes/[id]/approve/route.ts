@@ -4,6 +4,7 @@ import { resumeProfileSchema, calculateAverageConfidence } from "@/lib/resumes/p
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { enqueueResumeEmbedding } from "@/server/matching/queue";
+import { deleteRawResumeFile, rawFileDeleteAfter } from "@/server/resumes/retention";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -77,6 +78,18 @@ export async function POST(_request: Request, context: RouteContext) {
       throw new Error("Could not approve the profile");
     }
 
+    const { data: account } = await supabase
+      .from("profiles")
+      .select("raw_file_retention_policy")
+      .eq("user_id", userId)
+      .single();
+    const approvedAt = new Date();
+    const rawFileRetentionPolicy =
+      account?.raw_file_retention_policy === "retain_30_days"
+        ? "retain_30_days"
+        : "delete_after_approval";
+    const rawFileDeleteAt = rawFileDeleteAfter(rawFileRetentionPolicy, approvedAt);
+
     const { error: updateError } = await supabase
       .from("resumes")
       .update({
@@ -85,6 +98,7 @@ export async function POST(_request: Request, context: RouteContext) {
         latest_profile_version: approvedVersion,
         approved_profile_version: approvedVersion,
         derived_profile_version: null,
+        raw_file_delete_after: rawFileDeleteAt,
       })
       .eq("id", id)
       .eq("user_id", userId);
@@ -93,14 +107,30 @@ export async function POST(_request: Request, context: RouteContext) {
     }
 
     let embeddingQueued = false;
+    let rawFileDeleted = false;
     try {
-      await enqueueResumeEmbedding(createAdminSupabaseClient(), id, userId, approvedVersion);
+      const admin = createAdminSupabaseClient();
+      await enqueueResumeEmbedding(admin, id, userId, approvedVersion);
       embeddingQueued = true;
+      if (rawFileRetentionPolicy === "delete_after_approval") {
+        const { data: rawResume } = await admin
+          .from("resumes")
+          .select("id,storage_path,raw_file_deleted_at")
+          .eq("id", id)
+          .maybeSingle();
+        if (rawResume) rawFileDeleted = await deleteRawResumeFile(admin, rawResume);
+      }
     } catch {
       // Approval remains valid; the match route can enqueue the derived signal again.
     }
 
-    return Response.json({ profile: approved, status: "approved", embeddingQueued });
+    return Response.json({
+      profile: approved,
+      status: "approved",
+      embeddingQueued,
+      rawFileDeleted,
+      rawFileDeleteAt,
+    });
   } catch (error) {
     if (error instanceof AuthenticationRequiredError) {
       return unauthorized();

@@ -159,6 +159,15 @@ Version numbers above are the approved starting baseline, not permission to skip
 - The reviewed synthetic ranking fixture passes the release gate: no hard-conflict result is included, and the hybrid ordering beats the keyword-only baseline on precision@10 and nDCG@10. Hosted Phase 4 RLS transaction tests pass 20 assertions with synthetic rows rolled back, including service-role rejection of cross-user match references; linked security/performance advisors report no error-level findings.
 - Live worker/provider verification remains an external deployment task. Before enabling paid processing, deploy `process-embeddings`, configure `MATCHING_WORKER_SECRET` and a reachable `RESULENS_APP_URL`, schedule the function, run a synthetic approved-resume/job smoke test, and benchmark the HNSW index with representative data.
 
+### Phase 5 production-readiness status
+
+- Account settings expose two source-PDF policies: delete immediately after profile approval, or retain privately for 30 days. This setting is deliberately separate from the approved structured profile, which remains available until the resume or account is deleted.
+- Account deletion is coordinated through a durable service-role-only ledger. The application marks the account first so database triggers reject new applicant work, revokes Clerk sessions, removes Storage objects through the Storage API, deletes the profile cascade and derived rows, deletes the Clerk user, and retains enough cleanup state to retry a partial failure.
+- `maintain-production` is the bounded scheduled recovery worker. It retries account cleanup, removes expired PDFs, and recovers resume/embedding locks older than ten minutes without placing applicant identifiers or content in its response.
+- Sentry is optional at runtime and uses `sendDefaultPii: false`, low configurable trace sampling, and a recursive event/breadcrumb scrubber. Provider dashboards and alerts are environment configuration, not source-code completion.
+- Development, staging, and production must use separate Clerk, Supabase, OpenAI, worker, Sentry, and job-source credentials. Database backup and Storage recovery are distinct; Supabase database backups do not contain Storage objects.
+- Production deployment remains blocked until the repository launch checklist has current staging integration, deletion, monitoring, latency, cost, backup, and rollback evidence.
+
 ## AI Contract
 
 Use the OpenAI Responses API with JSON Schema Structured Outputs and `store: false` for resume processing. Keep the API key server-side.
@@ -248,6 +257,7 @@ Expected core tables:
 - `job_actions`
 - `job_feedback`
 - `processing_failures`
+- `account_deletion_jobs` (service-role-only retry ledger retained after profile deletion)
 
 Use relational columns for fields used by filters, joins, authorization, and indexes. JSONB is suitable for private raw provider payloads and infrequently queried metadata, not as a substitute for a deliberate schema.
 

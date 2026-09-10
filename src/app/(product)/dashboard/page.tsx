@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 import { ResumeUploadCard } from "@/components/resume-upload-card";
+import { OnboardingPanel } from "@/components/onboarding-panel";
 import { AuthenticationRequiredError, requireUser } from "@/lib/auth/require-user";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -30,11 +31,14 @@ export default async function DashboardPage() {
     throw new Error(`Could not initialize the profile: ${profileError.message}`);
   }
 
-  const { data: resumes, error: resumesError } = await supabase
-    .from("resumes")
-    .select("id,original_filename,status,processing_stage,page_count,created_at,error_message")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
+  const [{ data: account }, { data: resumes, error: resumesError }] = await Promise.all([
+    supabase.from("profiles").select("onboarding_completed_at").eq("user_id", userId).single(),
+    supabase
+      .from("resumes")
+      .select("id,original_filename,status,processing_stage,page_count,created_at,error_message")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false }),
+  ]);
 
   if (resumesError) {
     throw new Error("Could not load resumes");
@@ -58,6 +62,10 @@ export default async function DashboardPage() {
           {resumes?.length ?? 0} resume{resumes?.length === 1 ? "" : "s"}
         </p>
       </div>
+
+      {!account?.onboarding_completed_at ? (
+        <OnboardingPanel hasResume={Boolean(resumes?.length)} />
+      ) : null}
 
       <div className="workspace-actions">
         <Link href="/dashboard/jobs" className="button-primary">

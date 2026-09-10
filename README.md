@@ -1,6 +1,6 @@
 # ResuLens
 
-ResuLens is a resume-first job discovery application. Phases 1–4 provide Clerk authentication, private resume processing, normalized job ingestion, and deterministic, explainable resume-to-job matching.
+ResuLens is a resume-first job discovery application. Phases 1–5 provide Clerk authentication, private resume processing, normalized job ingestion, deterministic matching, retention controls, coordinated deletion, and opt-in production monitoring.
 
 ## Requirements
 
@@ -8,7 +8,7 @@ ResuLens is a resume-first job discovery application. Phases 1–4 provide Clerk
 - npm 11 (recorded in `package.json`)
 - A Clerk development instance
 - A Supabase project configured with Clerk as its third-party authentication provider
-- Docker Desktop or Podman for local Supabase pgTAP tests
+- Docker Desktop or Podman only if running Supabase pgTAP locally; the linked hosted test workflow is the Docker-free alternative
 
 ## Local setup
 
@@ -113,6 +113,13 @@ ResuLens is a resume-first job discovery application. Phases 1–4 provide Clerk
    same network, use `npm run dev:lan` and add that machine's origin to the Clerk
    development instance allowed origins.
 
+9. For Phase 5, deploy `maintain-production`, give it the same
+   `OPERATIONS_WORKER_SECRET` as the app, and schedule it every five minutes.
+   Configure Sentry only with environment-specific values. Complete
+   [the launch checklist](docs/operations/launch-checklist.md) before a production deploy;
+   environment isolation and incident recovery are documented under
+   [docs/operations](docs/operations/environments.md).
+
 ## Scripts
 
 | Command                | Purpose                                             |
@@ -138,3 +145,5 @@ ResuLens is a resume-first job discovery application. Phases 1–4 provide Clerk
 - OpenAI Responses Structured Outputs uses Zod validation, `store: false`, versioned prompts, bounded output, and server-only keys. Extracted profiles store evidence excerpts and confidence, not raw resume text.
 - Profile edits create a new draft version. Approval creates an approved version and clears any future derived-data version so stale embeddings or matches cannot be reused.
 - Job ingestion uses the documented public Adzuna search, Greenhouse Job Board, and Lever Postings endpoints through one bounded adapter contract. Provider HTML is stored as sanitized plain text, provider identity is `(source_id, external_job_id)`, private raw payloads are worker-only, and complete refreshes expire unseen listings. Phase 4 queues private resume/job embeddings, applies hard eligibility constraints before hybrid retrieval, and stores deterministic, versioned ResuLens match scores with optional grounded explanations.
+- Phase 5 lets users delete source PDFs immediately after approval or retain them for 30 days. The approved profile remains until its resume or account is deleted. Account deletion blocks new writes before revoking sessions and removing Storage/database/Clerk state through a retryable cleanup ledger.
+- Sentry is disabled when no DSN is configured. When enabled it uses PII-safe defaults and a recursive scrubber; provider dashboards and alerts still require explicit staging/production configuration.

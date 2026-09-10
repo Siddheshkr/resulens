@@ -17,7 +17,8 @@ function isProtectedApiRoute(pathname: string) {
     pathname.startsWith("/api/jobs/") ||
     pathname === "/api/matches" ||
     pathname.startsWith("/api/matches/") ||
-    pathname === "/api/preferences"
+    pathname === "/api/preferences" ||
+    pathname === "/api/account"
   );
 }
 

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { estimateAiCostMicrousd } from "@/lib/ai/cost";
+
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
@@ -215,6 +217,11 @@ export async function generateMatchExplanation(userId: string, runId: string, jo
         explanation,
         input_tokens: response.usage?.input_tokens ?? null,
         output_tokens: response.usage?.output_tokens ?? null,
+        estimated_cost_microusd: estimateAiCostMicrousd(
+          model,
+          response.usage?.input_tokens,
+          response.usage?.output_tokens,
+        ),
         latency_ms: Date.now() - startedAt,
         error_code: null,
         error_message: null,

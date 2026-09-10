@@ -1,5 +1,7 @@
 import "server-only";
 
+import { estimateAiCostMicrousd } from "@/lib/ai/cost";
+
 import { randomUUID } from "node:crypto";
 
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
@@ -105,6 +107,7 @@ async function processResumeEmbedding(
         content_hash: contentHash,
         embedding: formatPgVector(embedding.vectors[0]),
         input_tokens: embedding.inputTokens,
+        estimated_cost_microusd: estimateAiCostMicrousd(embedding.model, embedding.inputTokens, 0),
         latency_ms: embedding.latencyMs,
       },
       { onConflict: "resume_id,profile_version,model,content_hash" },
@@ -176,6 +179,7 @@ async function processJobEmbedding(
       content_fingerprint: posting.content_fingerprint,
       embedding: formatPgVector(embedding.vectors[0]),
       input_tokens: embedding.inputTokens,
+      estimated_cost_microusd: estimateAiCostMicrousd(embedding.model, embedding.inputTokens, 0),
       latency_ms: embedding.latencyMs,
     },
     { onConflict: "job_posting_id" },

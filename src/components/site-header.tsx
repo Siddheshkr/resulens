@@ -22,6 +22,9 @@ export function SiteHeader() {
           <Link href="/dashboard/matches" className="site-nav-link">
             Matches
           </Link>
+          <Link href="/dashboard/settings" className="site-nav-link">
+            Settings
+          </Link>
         </nav>
         <div className="site-account">
           <AuthControls />
