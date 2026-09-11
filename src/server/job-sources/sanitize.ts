@@ -111,6 +111,24 @@ export function fingerprintJob(input: {
   return createHash("sha256").update(normalized, "utf8").digest("hex");
 }
 
+/** Groups likely duplicate roles while retaining every provider-specific row. */
+export function fingerprintCrossPosting(input: {
+  title: string;
+  description: string;
+  locationText: string | null;
+  companyName: string | null;
+}) {
+  const normalized = [
+    input.title,
+    input.description,
+    input.locationText ?? "",
+    input.companyName ? normalizeCompanyName(input.companyName) : "",
+  ]
+    .map((value) => value.replace(/\s+/gu, " ").trim().toLowerCase())
+    .join("\n");
+  return createHash("sha256").update(normalized, "utf8").digest("hex");
+}
+
 export function inferWorkplaceType(value: string | null | undefined) {
   const normalized = value?.toLowerCase() ?? "";
   if (/\bhybrid\b/.test(normalized)) return "hybrid" as const;

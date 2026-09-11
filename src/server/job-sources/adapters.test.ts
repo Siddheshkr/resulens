@@ -4,6 +4,7 @@ import { adzunaAdapter } from "@/server/job-sources/adzuna";
 import { greenhouseAdapter } from "@/server/job-sources/greenhouse";
 import { leverAdapter } from "@/server/job-sources/lever";
 import { fetchJson } from "@/server/job-sources/http";
+import { buildNormalizedJob } from "@/server/job-sources/common";
 import type { JobSource } from "@/server/job-sources/types";
 
 function source(
@@ -157,5 +158,30 @@ describe("job source adapters", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(sleep).toHaveBeenCalledOnce();
     expect(onRetry).toHaveBeenCalledOnce();
+  });
+
+  it("groups likely cross-provider duplicates without merging source identity", () => {
+    const base = {
+      title: "Platform Engineer",
+      description: "Build reliable distributed systems.",
+      locationText: "Remote - India",
+      companyName: "Synthetic Labs Pvt. Ltd.",
+      rawPayload: {},
+    };
+    const greenhouse = buildNormalizedJob({
+      ...base,
+      externalJobId: "greenhouse-1",
+      canonicalUrl: "https://boards.greenhouse.io/synthetic/jobs/1",
+      source: source("greenhouse", {}),
+    });
+    const lever = buildNormalizedJob({
+      ...base,
+      externalJobId: "lever-1",
+      canonicalUrl: "https://jobs.lever.co/synthetic/1",
+      source: source("lever", {}),
+    });
+
+    expect(greenhouse.crossPostingKey).toBe(lever.crossPostingKey);
+    expect(greenhouse.contentFingerprint).not.toBe(lever.contentFingerprint);
   });
 });

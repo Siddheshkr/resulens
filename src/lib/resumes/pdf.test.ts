@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { vi } from "vitest";
 
 import { assertPdfUpload, extractResumeText, PdfProcessingError } from "@/lib/resumes/pdf";
+import { MAX_RESUME_BYTES } from "@/lib/resumes/constants";
 
 vi.mock("server-only", () => ({}));
 
@@ -43,6 +44,17 @@ describe("resume PDF validation", () => {
     expect(() =>
       assertPdfUpload({ bytes: new TextEncoder().encode("hello"), mimeType: "text/plain" }),
     ).toThrowError(new PdfProcessingError("invalid_mime", "Only PDF files can be scanned."));
+    expect(() =>
+      assertPdfUpload({ bytes: new Uint8Array(MAX_RESUME_BYTES + 1), mimeType: "application/pdf" }),
+    ).toThrowError(new PdfProcessingError("file_too_large", "PDF files must be 5 MB or smaller."));
+    expect(() =>
+      assertPdfUpload({
+        bytes: new TextEncoder().encode("not a pdf"),
+        mimeType: "application/pdf",
+      }),
+    ).toThrowError(
+      new PdfProcessingError("invalid_signature", "The selected file is not a valid PDF."),
+    );
   });
 
   it("extracts text with page boundaries from a synthetic text PDF", async () => {

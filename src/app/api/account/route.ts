@@ -3,6 +3,7 @@ import { deleteAccountSchema, updateAccountSettingsSchema } from "@/lib/accounts
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requestAccountDeletion } from "@/server/accounts/cleanup";
+import { ensureUserProfile } from "@/server/accounts/profile";
 import { rawFileDeleteAfter } from "@/server/resumes/retention";
 
 export const dynamic = "force-dynamic";
@@ -15,13 +16,8 @@ export async function GET() {
   try {
     const { userId } = await requireUser();
     const supabase = await createServerSupabaseClient();
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("raw_file_retention_policy,onboarding_completed_at,deletion_status")
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (error) throw new Error("Could not load account settings");
-    return Response.json({ settings: data });
+    const profile = await ensureUserProfile(supabase, userId);
+    return Response.json({ settings: profile });
   } catch (error) {
     if (error instanceof AuthenticationRequiredError) return unauthorized();
     throw error;
@@ -45,6 +41,7 @@ export async function PATCH(request: Request) {
         : {}),
     };
     const supabase = await createServerSupabaseClient();
+    await ensureUserProfile(supabase, userId);
     const { data, error } = await supabase
       .from("profiles")
       .update(updates)

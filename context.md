@@ -157,16 +157,18 @@ Version numbers above are the approved starting baseline, not permission to skip
 - `/dashboard/matches` and the protected matching APIs provide versioned feed runs, preference controls, score breakdowns labelled **ResuLens match score**, job details, source links, save/dismiss/applied actions, and relevance feedback. Opening a canonical source URL never marks a job as applied. Editing preferences or approving a new profile changes the persisted revision used by the next run.
 - Explanations use OpenAI Responses Structured Outputs with Zod, `store: false`, bounded evidence-only prompts, quote validation, model/prompt/input version hashes, and safe cached failure rows. An explanation failure leaves deterministic ranked results visible.
 - The reviewed synthetic ranking fixture passes the release gate: no hard-conflict result is included, and the hybrid ordering beats the keyword-only baseline on precision@10 and nDCG@10. Hosted Phase 4 RLS transaction tests pass 20 assertions with synthetic rows rolled back, including service-role rejection of cross-user match references; linked security/performance advisors report no error-level findings.
-- Live worker/provider verification remains an external deployment task. Before enabling paid processing, deploy `process-embeddings`, configure `MATCHING_WORKER_SECRET` and a reachable `RESULENS_APP_URL`, schedule the function, run a synthetic approved-resume/job smoke test, and benchmark the HNSW index with representative data.
+- Live worker/provider verification remains an external deployment task. The linked development project currently has no deployed Edge Functions, and the configured OpenAI project currently rejects synthetic requests because its credit balance is exhausted. Before enabling paid processing, fund API usage, deploy `process-embeddings`, configure `MATCHING_WORKER_SECRET` and a reachable `RESULENS_APP_URL`, schedule the function, run a synthetic approved-resume/job smoke test, and benchmark the HNSW index with representative data.
 
 ### Phase 5 production-readiness status
 
 - Account settings expose two source-PDF policies: delete immediately after profile approval, or retain privately for 30 days. This setting is deliberately separate from the approved structured profile, which remains available until the resume or account is deleted.
 - Account deletion is coordinated through a durable service-role-only ledger. The application marks the account first so database triggers reject new applicant work, revokes Clerk sessions, removes Storage objects through the Storage API, deletes the profile cascade and derived rows, deletes the Clerk user, and retains enough cleanup state to retry a partial failure.
+- Authenticated sessions may update only onboarding and raw-file-retention preferences on `profiles`. Deletion state and direct profile deletion are service-controlled so a browser client cannot bypass coordinated Storage and Clerk cleanup.
 - `maintain-production` is the bounded scheduled recovery worker. It retries account cleanup, removes expired PDFs, and recovers resume/embedding locks older than ten minutes without placing applicant identifiers or content in its response.
 - Sentry is optional at runtime and uses `sendDefaultPii: false`, low configurable trace sampling, and a recursive event/breadcrumb scrubber. Provider dashboards and alerts are environment configuration, not source-code completion.
 - Development, staging, and production must use separate Clerk, Supabase, OpenAI, worker, Sentry, and job-source credentials. Database backup and Storage recovery are distinct; Supabase database backups do not contain Storage objects.
 - Production deployment remains blocked until the repository launch checklist has current staging integration, deletion, monitoring, latency, cost, backup, and rollback evidence.
+- Source-level Phase 1–5 verification passes on Node 24, and hosted migrations are synchronized through `20260911022141_phase_completion_hardening`. This does not constitute a staging or production launch: provider credentials, workers, monitoring destinations, backup/rollback evidence, and the complete authenticated synthetic journey still require live verification.
 
 ## AI Contract
 
@@ -205,7 +207,7 @@ Requirements:
 
 - Retain canonical source URLs and required attribution.
 - Use `(source_id, external_job_id)` as the primary provider identity.
-- Add a content fingerprint to detect duplicate cross-postings.
+- Keep a source-specific content fingerprint for change detection and a separate cross-posting key for grouping likely duplicates without discarding provider identity.
 - Sanitize all provider HTML before displaying it.
 - Keep raw provider payloads private and out of client responses.
 - Refresh on a configurable schedule, initially every four to six hours.

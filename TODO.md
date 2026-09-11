@@ -1,6 +1,6 @@
 # ResuLens Work Tracker
 
-Last reviewed: 2026-09-10
+Last reviewed: 2026-09-11
 
 This file is the lightweight, repository-level source of truth for planned and completed work. Product and architecture decisions belong in `context.md`; contributor rules belong in `AGENTS.md`; runtime logs belong in the relevant observability system.
 
@@ -36,7 +36,7 @@ Completed task format:
 
 - [ ] Deploy and smoke-test all bounded workers in staging (`process-resumes`, `process-embeddings`, `ingest-jobs`, and `maintain-production`)
   - Owner: unassigned
-  - Depends on: separate staging Clerk/Supabase/OpenAI/provider credentials, a reachable staging app URL, and worker secrets
+  - Depends on: separate staging Clerk/Supabase/OpenAI/provider credentials, funded OpenAI API usage, a reachable staging app URL, and worker secrets; the linked project currently has no deployed Edge Functions
   - Verify: synthetic text/scanned resume workflow, ingestion, matching, stalled-task recovery, retention expiry, and no sensitive logs
 
 - [ ] Configure Sentry dashboards and alerts for staging and production
@@ -66,7 +66,7 @@ Completed task format:
 
 - [ ] Configure and smoke-test the Phase 2 worker path
   - Owner: unassigned
-  - Depends on: the Phase 2 migration, OpenAI server key, worker secret, deployed app URL, and a synthetic PDF
+  - Depends on: the applied Phase 2 migration, funded OpenAI API usage, worker secret, deployed app URL, and a synthetic PDF
   - Verify: signed upload, completion, bounded worker processing, profile review, approval, retry, refresh, and deletion complete without raw resume content in logs
 
 - [ ] Configure and smoke-test the Phase 3 job ingestion worker
@@ -76,7 +76,7 @@ Completed task format:
 
 - [ ] Configure and smoke-test the Phase 4 embedding and matching worker
   - Owner: unassigned
-  - Depends on: hosted Phase 4 migrations, `OPENAI_API_KEY`, `MATCHING_WORKER_SECRET`, a reachable deployed app URL, and synthetic approved resume/job rows
+  - Depends on: hosted Phase 4 migrations, funded OpenAI API usage, `MATCHING_WORKER_SECRET`, a reachable deployed app URL, and synthetic approved resume/job rows
   - Verify: resume and job queue messages are processed with bounded retries, stale/deleted revisions cannot write vectors, a match run reaches `succeeded`, top-ten explanations cache safely, and no applicant content appears in logs
 
 - [ ] Run the paid-provider release gate for embeddings and explanations
@@ -115,6 +115,10 @@ When adding a blocker, use this form:
 ```
 
 ## Completed
+
+- [x] Close source-level Phase 1–5 audit defects and harden the hosted schema — 2026-09-11
+  - Evidence: first-visit profile initialization now works on Dashboard, Settings, account APIs, and resume upload; worker secrets use one constant-time verifier; ingestion requests have bounded Zod validation; ranked matches collapse likely cross-provider duplicates; direct profile deletion and deletion-state edits are no longer available to authenticated browser sessions.
+  - Verification: Node 24 formatting, lint, strict TypeScript, 45 Vitest tests, production build, dependency audit, and 26 desktop/mobile Playwright checks pass. Hosted migration `20260911022141_phase_completion_hardening` is applied; profile, job, and matching pgTAP suites reach `ok 8`, `ok 12`, and `ok 20`; Supabase security advisors report no findings. A synthetic live OpenAI request reached the provider but was rejected with `credit_balance_exhausted`, so paid worker verification remains in Now.
 
 - [x] Establish and apply the ResuLens interface system across the application — 2026-09-10
   - Evidence: `design.md` adapts the supplied Framer analysis into ResuLens-specific color, type, layout, component, responsive, content, and accessibility rules; the landing, navigation, Clerk auth, dashboard, upload, resume review, job feed/detail, and match feed now use the same dark instrument system.

@@ -1,17 +1,13 @@
-import { timingSafeEqual } from "node:crypto";
-
+import { hasValidWorkerSecret } from "@/lib/security/worker-secret";
 import { ingestActiveJobSources } from "@/server/job-sources/ingest";
+import { ingestionRequestSchema } from "@/server/job-sources/requests";
 
 export const dynamic = "force-dynamic";
 
 function hasWorkerSecret(request: Request) {
-  const configured = process.env.JOB_INGESTION_SECRET;
-  const supplied = request.headers.get("x-resulens-job-worker");
-  if (!configured || !supplied) return false;
-  const expectedBytes = Buffer.from(configured);
-  const suppliedBytes = Buffer.from(supplied);
-  return (
-    expectedBytes.length === suppliedBytes.length && timingSafeEqual(expectedBytes, suppliedBytes)
+  return hasValidWorkerSecret(
+    process.env.JOB_INGESTION_SECRET,
+    request.headers.get("x-resulens-job-worker"),
   );
 }
 
@@ -20,12 +16,8 @@ export async function POST(request: Request) {
     return Response.json({ error: "Not found" }, { status: 404 });
   }
 
-  const body = (await request.json().catch(() => ({}))) as {
-    maxSources?: unknown;
-    maxPages?: unknown;
-  };
-  const maxSources = typeof body.maxSources === "number" ? body.maxSources : undefined;
-  const maxPages = typeof body.maxPages === "number" ? body.maxPages : undefined;
-  const results = await ingestActiveJobSources({ maxSources, maxPages, signal: request.signal });
+  const body = ingestionRequestSchema.safeParse(await request.json().catch(() => ({})));
+  if (!body.success) return Response.json({ error: "Invalid worker request" }, { status: 400 });
+  const results = await ingestActiveJobSources({ ...body.data, signal: request.signal });
   return Response.json({ results });
 }

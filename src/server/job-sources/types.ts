@@ -35,6 +35,7 @@ export type NormalizedJob = {
   company: NormalizedCompany | null;
   skills: Array<{ displaySkill: string; normalizedSkill: string }>;
   contentFingerprint: string;
+  crossPostingKey: string;
   rawPayload: Json;
 };
 

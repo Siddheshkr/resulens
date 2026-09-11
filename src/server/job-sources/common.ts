@@ -1,6 +1,7 @@
 import type { Json } from "@/lib/supabase/database.types";
 import {
   fingerprintJob,
+  fingerprintCrossPosting,
   inferWorkplaceType,
   normalizeCompanyName,
   normalizeHttpsUrl,
@@ -102,6 +103,12 @@ export function buildNormalizedJob(input: {
     companyName,
     canonicalUrl,
   });
+  const crossPostingKey = fingerprintCrossPosting({
+    title,
+    description,
+    locationText,
+    companyName,
+  });
 
   return {
     externalJobId,
@@ -127,6 +134,7 @@ export function buildNormalizedJob(input: {
         : null,
     skills,
     contentFingerprint,
+    crossPostingKey,
     rawPayload: toJson(input.rawPayload),
   };
 }

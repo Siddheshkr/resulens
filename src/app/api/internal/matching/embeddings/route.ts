@@ -1,5 +1,6 @@
-import { randomUUID, timingSafeEqual } from "node:crypto";
+import { randomUUID } from "node:crypto";
 
+import { hasValidWorkerSecret } from "@/lib/security/worker-secret";
 import { embeddingWorkerRequestSchema } from "@/server/matching/requests";
 import { processEmbeddingJob } from "@/server/matching/processor";
 import { z } from "zod";
@@ -8,13 +9,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function hasWorkerSecret(request: Request) {
-  const configured = process.env.MATCHING_WORKER_SECRET;
-  const supplied = request.headers.get("x-resulens-matching-worker");
-  if (!configured || !supplied) return false;
-  const expectedBytes = Buffer.from(configured);
-  const suppliedBytes = Buffer.from(supplied);
-  return (
-    expectedBytes.length === suppliedBytes.length && timingSafeEqual(expectedBytes, suppliedBytes)
+  return hasValidWorkerSecret(
+    process.env.MATCHING_WORKER_SECRET,
+    request.headers.get("x-resulens-matching-worker"),
   );
 }
 

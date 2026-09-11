@@ -11,6 +11,7 @@ import { createResumeUploadSchema } from "@/lib/resumes/requests";
 import { sanitizeResumeFilename } from "@/lib/resumes/filename";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { ensureUserProfile } from "@/server/accounts/profile";
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +76,7 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createServerSupabaseClient();
+    await ensureUserProfile(supabase, userId);
     const { data: recentResumes, error: quotaError } = await supabase
       .from("resumes")
       .select("byte_size")
@@ -98,13 +100,6 @@ export async function POST(request: Request) {
 
     const resumeId = randomUUID();
     const storagePath = `${userId}/${resumeId}.pdf`;
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .upsert({ user_id: userId }, { onConflict: "user_id" });
-    if (profileError) {
-      throw new Error("Could not initialize the account profile");
-    }
-
     const { data: resume, error: insertError } = await supabase
       .from("resumes")
       .insert({

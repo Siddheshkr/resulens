@@ -4,6 +4,7 @@ import { AccountSettingsForm } from "@/components/account-settings-form";
 import { AuthenticationRequiredError, requireUser } from "@/lib/auth/require-user";
 import type { RawFileRetentionPolicy } from "@/lib/accounts/requests";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { ensureUserProfile } from "@/server/accounts/profile";
 
 export const dynamic = "force-dynamic";
 
@@ -17,12 +18,7 @@ export default async function SettingsPage() {
     throw error;
   }
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("raw_file_retention_policy")
-    .eq("user_id", userId)
-    .single();
-  if (error) throw new Error("Could not load privacy settings");
+  const data = await ensureUserProfile(supabase, userId);
   const policy: RawFileRetentionPolicy =
     data.raw_file_retention_policy === "retain_30_days"
       ? "retain_30_days"

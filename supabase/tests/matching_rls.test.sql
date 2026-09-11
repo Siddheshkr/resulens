@@ -35,14 +35,14 @@ values ('00000000-0000-0000-0000-000000000203', 'matching synthetic labs', 'Matc
 
 insert into public.job_postings (
   id, source_id, external_job_id, company_id, title, description, location_text,
-  country_code, workplace_type, canonical_url, content_fingerprint, status
+  country_code, workplace_type, canonical_url, content_fingerprint, cross_posting_key, status
 )
 values (
   '00000000-0000-0000-0000-000000000204',
   '00000000-0000-0000-0000-000000000202', 'matching-job',
   '00000000-0000-0000-0000-000000000203', 'Synthetic Platform Engineer',
   'Build synthetic services.', 'Remote - India', 'IN', 'remote',
-  'https://example.com/matching-job', repeat('d', 64), 'active'
+  'https://example.com/matching-job', repeat('d', 64), repeat('3', 64), 'active'
 );
 
 insert into public.candidate_preferences (user_id)

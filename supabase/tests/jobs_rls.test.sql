@@ -18,7 +18,7 @@ values ('00000000-0000-0000-0000-000000000102', 'synthetic labs', 'Synthetic Lab
 
 insert into public.job_postings (
   id, source_id, external_job_id, company_id, title, description, location_text,
-  country_code, workplace_type, canonical_url, content_fingerprint, status
+  country_code, workplace_type, canonical_url, content_fingerprint, cross_posting_key, status
 )
 values
 (
@@ -33,6 +33,7 @@ values
   'remote',
   'https://example.com/jobs/job-active',
   repeat('a', 64),
+  repeat('1', 64),
   'active'
 ),
 (
@@ -47,6 +48,7 @@ values
   'onsite',
   'https://example.com/jobs/job-expired',
   repeat('b', 64),
+  repeat('2', 64),
   'expired'
 );
 

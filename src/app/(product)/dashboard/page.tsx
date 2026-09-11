@@ -6,6 +6,7 @@ import { ResumeUploadCard } from "@/components/resume-upload-card";
 import { OnboardingPanel } from "@/components/onboarding-panel";
 import { AuthenticationRequiredError, requireUser } from "@/lib/auth/require-user";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { ensureUserProfile } from "@/server/accounts/profile";
 
 export const dynamic = "force-dynamic";
 
@@ -23,22 +24,13 @@ export default async function DashboardPage() {
   }
 
   const supabase = await createServerSupabaseClient();
-  const { error: profileError } = await supabase
-    .from("profiles")
-    .upsert({ user_id: userId }, { onConflict: "user_id" });
+  const account = await ensureUserProfile(supabase, userId);
 
-  if (profileError) {
-    throw new Error(`Could not initialize the profile: ${profileError.message}`);
-  }
-
-  const [{ data: account }, { data: resumes, error: resumesError }] = await Promise.all([
-    supabase.from("profiles").select("onboarding_completed_at").eq("user_id", userId).single(),
-    supabase
-      .from("resumes")
-      .select("id,original_filename,status,processing_stage,page_count,created_at,error_message")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false }),
-  ]);
+  const { data: resumes, error: resumesError } = await supabase
+    .from("resumes")
+    .select("id,original_filename,status,processing_stage,page_count,created_at,error_message")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
 
   if (resumesError) {
     throw new Error("Could not load resumes");

@@ -104,6 +104,7 @@ async function writeJob(admin: AdminClient, source: JobSource, job: NormalizedJo
     expires_at: job.expiresAt,
     status: job.status,
     content_fingerprint: job.contentFingerprint,
+    cross_posting_key: job.crossPostingKey,
     last_seen_at: seenAt,
   };
   const { data: savedPosting, error: postingError } = await admin

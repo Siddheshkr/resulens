@@ -1,4 +1,5 @@
 import { workerRequestSchema } from "@/lib/resumes/requests";
+import { hasValidWorkerSecret } from "@/lib/security/worker-secret";
 import { processResume } from "@/server/resumes/processor";
 
 export const runtime = "nodejs";
@@ -8,7 +9,7 @@ export async function POST(request: Request) {
   const configuredSecret = process.env.RESUME_WORKER_SECRET;
   const providedSecret = request.headers.get("x-resulens-worker-secret");
 
-  if (!configuredSecret || !providedSecret || providedSecret !== configuredSecret) {
+  if (!hasValidWorkerSecret(configuredSecret, providedSecret)) {
     return Response.json({ error: "Not found" }, { status: 404 });
   }
 

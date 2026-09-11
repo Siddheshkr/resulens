@@ -62,25 +62,22 @@ select set_config(
 );
 
 select lives_ok(
-  $$update public.profiles set updated_at = timezone('utc', now()) where user_id = 'user_a'$$,
-  'a user can update their own profile'
+  $$update public.profiles set raw_file_retention_policy = 'retain_30_days' where user_id = 'user_a'$$,
+  'a user can update an allowed account preference'
 );
 
-select lives_ok(
+select throws_ok(
+  $$update public.profiles set deletion_status = 'active' where user_id = 'user_a'$$,
+  '42501',
+  null,
+  'a user cannot alter the trusted deletion lifecycle'
+);
+
+select throws_ok(
   $$delete from public.profiles where user_id = 'user_a'$$,
-  'a user can delete their own profile'
-);
-
-select set_config(
-  'request.jwt.claims',
-  '{"sub":"user_b","role":"authenticated"}',
-  true
-);
-
-select is(
-  (select count(*)::integer from public.profiles),
-  0,
-  'the deleted profile is no longer visible'
+  '42501',
+  null,
+  'a user cannot bypass coordinated account deletion'
 );
 
 select finish();

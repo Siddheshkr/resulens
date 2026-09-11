@@ -628,6 +628,7 @@ export type Database = {
           canonical_url: string;
           company_id: string | null;
           content_fingerprint: string;
+          cross_posting_key: string;
           country_code: string | null;
           created_at: string;
           description: string;
@@ -657,6 +658,7 @@ export type Database = {
           canonical_url: string;
           company_id?: string | null;
           content_fingerprint: string;
+          cross_posting_key: string;
           country_code?: string | null;
           created_at?: string;
           description: string;
@@ -686,6 +688,7 @@ export type Database = {
           canonical_url?: string;
           company_id?: string | null;
           content_fingerprint?: string;
+          cross_posting_key?: string;
           country_code?: string | null;
           created_at?: string;
           description?: string;

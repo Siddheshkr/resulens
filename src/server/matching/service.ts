@@ -27,6 +27,7 @@ import {
   scoreMatch,
 } from "@/server/matching/scoring";
 import type { PreferencesInput } from "@/server/matching/requests";
+import { takeDistinctCrossPostings } from "@/server/matching/grouping";
 
 type AdminClient = SupabaseClient<Database>;
 
@@ -53,6 +54,7 @@ type CandidateRow = {
 
 type ScoringJob = MatchingJob & {
   country_code: string | null;
+  cross_posting_key: string;
 };
 
 function asJson(value: unknown): Json {
@@ -247,7 +249,7 @@ export async function createMatchRun(
     const { data: jobs, error: jobsError } = await admin
       .from("job_postings")
       .select(
-        "id,status,title,description,location_text,country_code,workplace_type,employment_type,seniority,salary_min,salary_max,salary_currency,work_authorization_support,required_experience_min_years,required_experience_max_years,content_fingerprint,posted_at,source_updated_at",
+        "id,status,title,description,location_text,country_code,workplace_type,employment_type,seniority,salary_min,salary_max,salary_currency,work_authorization_support,required_experience_min_years,required_experience_max_years,content_fingerprint,cross_posting_key,posted_at,source_updated_at",
       )
       .in("id", candidateIds);
     if (jobsError) throw new Error("Could not load matching jobs");
@@ -300,7 +302,7 @@ export async function createMatchRun(
     (left, right) =>
       right.breakdown.score - left.breakdown.score || left.job.id.localeCompare(right.job.id),
   );
-  const selected = scored.slice(0, MAX_MATCH_RESULTS);
+  const selected = takeDistinctCrossPostings(scored, MAX_MATCH_RESULTS);
   const sourceSnapshotHash = sha256Text(
     selected
       .map((item) => `${item.job.id}:${item.job.content_fingerprint}`)
