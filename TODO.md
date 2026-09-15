@@ -67,16 +67,19 @@ Completed task format:
   - Owner: unassigned
   - Depends on: the applied Phase 2 migration, funded OpenAI API usage, worker secret, deployed app URL, and a synthetic PDF
   - Verify: signed upload, completion, bounded worker processing, profile review, approval, retry, refresh, and deletion complete without raw resume content in logs
+  - Progress (2026-09-15): the Docker-free local runner (`npm run worker:local:watch`) now consumes the same private queue and invokes the existing localhost processor; a real local upload completed extraction and reached `needs_review` with a draft profile. Approval, embedding, and deletion still need to be exercised from the signed-in UI.
 
 - [ ] Configure and smoke-test the Phase 3 job ingestion worker
   - Owner: unassigned
   - Depends on: provider credentials, one or more curated board/site rows, `JOB_INGESTION_SECRET`, and a deployed app URL
   - Verify: a synthetic or permitted provider run is idempotent, partial provider failure is isolated, stale jobs expire only after a complete run, and `/dashboard/jobs` shows normalized listings without raw payloads
+  - Progress (2026-09-15): local-first workflow is verified independently of Vercel. `.env.local` contains the Supabase service-role key, worker secret, and Adzuna credentials; localhost health returns 200; a local bounded ingestion run completed `partial` with 5 pages, 100 records seen/upserted, and 0 failures; hosted data now has 101 active postings; and `/dashboard/jobs` renders the normalized listings. Hosted `ingest-jobs` Edge Function version 3 and Vault secrets are configured; its six-hour cron is intentionally paused while deployment verification is deferred until the Vercel Production service-role variable is corrected.
 
 - [ ] Configure and smoke-test the Phase 4 embedding and matching worker
   - Owner: unassigned
   - Depends on: hosted Phase 4 migrations, funded OpenAI API usage, `MATCHING_WORKER_SECRET`, a reachable deployed app URL, and synthetic approved resume/job rows
   - Verify: resume and job queue messages are processed with bounded retries, stale/deleted revisions cannot write vectors, a match run reaches `succeeded`, top-ten explanations cache safely, and no applicant content appears in logs
+  - Progress (2026-09-15): the same Docker-free local runner can poll the embedding queue without exposing identifiers; bounded job-embedding delivery works. The approved resume embedding now reaches a terminal `provider_quota_exhausted` state when the configured OpenAI project has no credits, and the match run/browser show an actionable failure instead of spinning forever. Add provider credits, then click Retry Matches and run the local worker again.
 
 - [ ] Run the paid-provider release gate for embeddings and explanations
   - Owner: unassigned

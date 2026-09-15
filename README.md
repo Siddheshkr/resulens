@@ -84,14 +84,16 @@ ResuLens is a resume-first job discovery application. Phases 1–5 provide Clerk
      ('adzuna', 'india-engineering', 'Adzuna India engineering', '{"countryCode":"in","query":"software engineer","location":"India"}');
    ```
 
-   Add `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`, and `JOB_INGESTION_SECRET` to the server/worker environment, then deploy the bounded refresh function:
+   Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and the server-only `SUPABASE_SERVICE_ROLE_KEY` alongside `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`, `ADZUNA_COUNTRY_CODE`, `ADZUNA_DEFAULT_QUERY`, `RESULENS_APP_URL`, and `JOB_INGESTION_SECRET` to the Vercel **Production** environment for the deployed app. Use the exact server-role value from the local `SUPABASE_SERVICE_ROLE_KEY`; do not substitute the publishable key. Keep the Adzuna credentials, Supabase service-role key, and worker secret server-only; never prefix them with `NEXT_PUBLIC_`. Redeploy Vercel after saving the variables. The current staging URL is `https://resulens-iota.vercel.app`.
+
+   The hosted Supabase project has the bounded refresh function configured; its six-hour cron is paused during local-first development and should be re-enabled after Vercel Production credentials are verified. If setting up another environment, deploy the function with the project ref and configure its secrets:
 
    ```bash
-   supabase functions deploy ingest-jobs
-   supabase secrets set RESULENS_APP_URL=https://your-app.example JOB_INGESTION_SECRET=replace-me
+   supabase functions deploy ingest-jobs --project-ref YOUR_PROJECT_REF --use-api
+   supabase secrets set --project-ref YOUR_PROJECT_REF RESULENS_APP_URL=https://your-app.example JOB_INGESTION_SECRET=replace-me JOB_INGESTION_MAX_SOURCES=3
    ```
 
-   Schedule `ingest-jobs` every four to six hours. Open [/dashboard/jobs](http://127.0.0.1:3000/dashboard/jobs) after a successful run. The worker only stores normalized fields in the exposed schema; raw provider responses remain in the private schema.
+   Schedule `ingest-jobs` every four to six hours with Supabase Cron/`pg_net`. The worker only stores normalized fields in the exposed schema; raw provider responses remain in the private schema. Open [/dashboard/jobs](http://127.0.0.1:3000/dashboard/jobs) after a successful run.
 
 8. Start the app:
 
@@ -113,6 +115,20 @@ ResuLens is a resume-first job discovery application. Phases 1–5 provide Clerk
    same network, use `npm run dev:lan` and add that machine's origin to the Clerk
    development instance allowed origins.
 
+   Supabase's Edge Function emulator requires Docker or Podman. If you do not
+   use either locally, run the Docker-free worker runner in a second terminal:
+
+   ```bash
+   npm run worker:local:watch
+   ```
+
+   It consumes the same private resume and embedding queues, calls the existing
+   server-only processors on localhost, and acknowledges only terminal results.
+   Use `npm run worker:local` for one bounded pass, or add `--resume-only` and
+   `--embeddings-only` while debugging. Keep this process running while testing
+   uploads and matches. It never prints resume content, job identifiers, or
+   provider responses.
+
 9. For Phase 5, deploy `maintain-production`, give it the same
    `OPERATIONS_WORKER_SECRET` as the app, and schedule it every five minutes.
    Configure Sentry only with environment-specific values. Complete
@@ -122,17 +138,19 @@ ResuLens is a resume-first job discovery application. Phases 1–5 provide Clerk
 
 ## Scripts
 
-| Command                | Purpose                                             |
-| ---------------------- | --------------------------------------------------- |
-| `npm run dev`          | Start the webpack-backed Next.js development server |
-| `npm run dev:lan`      | Start the server on all interfaces for LAN testing  |
-| `npm run lint`         | Run ESLint                                          |
-| `npm run typecheck`    | Run TypeScript strict checking                      |
-| `npm test`             | Run unit tests with Vitest                          |
-| `npm run test:db`      | Run Supabase pgTAP tests against the local database |
-| `npm run build`        | Create the production Next.js build                 |
-| `npm run test:e2e`     | Run Playwright public/protected route checks        |
-| `npm run format:check` | Verify Prettier formatting                          |
+| Command                      | Purpose                                               |
+| ---------------------------- | ----------------------------------------------------- |
+| `npm run dev`                | Start the webpack-backed Next.js development server   |
+| `npm run dev:lan`            | Start the server on all interfaces for LAN testing    |
+| `npm run lint`               | Run ESLint                                            |
+| `npm run typecheck`          | Run TypeScript strict checking                        |
+| `npm test`                   | Run unit tests with Vitest                            |
+| `npm run test:db`            | Run Supabase pgTAP tests against the local database   |
+| `npm run build`              | Create the production Next.js build                   |
+| `npm run test:e2e`           | Run Playwright public/protected route checks          |
+| `npm run worker:local`       | Process one bounded local resume/embedding queue pass |
+| `npm run worker:local:watch` | Keep the Docker-free local workers polling            |
+| `npm run format:check`       | Verify Prettier formatting                            |
 
 ## Architecture notes
 

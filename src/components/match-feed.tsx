@@ -77,6 +77,8 @@ type MatchRun = {
     status: string;
     candidate_count: number;
     explanation_status: string;
+    error_code?: string | null;
+    error_message?: string | null;
     resume_profile_version: number;
     preferences_revision: number;
     scoring_version: string;
@@ -125,6 +127,22 @@ function scoreSignals(value: JsonValue) {
     if (typeof signalValue !== "number") return [];
     return [{ name, value: signalValue }];
   });
+}
+
+function matchFailureMessage(run: MatchRun["run"]) {
+  if (run.error_code === "provider_quota_exhausted") {
+    return "AI matching is unavailable because the configured provider has no available quota. Add API credits, then retry.";
+  }
+  if (run.error_code === "provider_unconfigured") {
+    return "AI matching is not configured for this environment.";
+  }
+  if (run.error_code === "provider_unauthorized") {
+    return "AI matching could not authenticate with the configured provider.";
+  }
+  return (
+    run.error_message ??
+    "The private matching signal could not be generated. Check the AI provider configuration, then retry."
+  );
 }
 
 function inputValue(value: string[]) {
@@ -179,6 +197,7 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
             salaryCurrency: preferences.salaryCurrency,
             workAuthorizationStatus: preferences.workAuthorizationStatus,
           },
+          retry: true,
         }),
       });
       const payload = (await response.json()) as {
@@ -216,11 +235,16 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
           current = await loadRun(retryPayload.runId);
         }
       }
-      setMessage(
-        current.run.status === "succeeded"
-          ? `${current.matches.length} eligible matches ranked with a deterministic ResuLens match score.`
-          : "Matching is still processing. You can refresh this page in a moment.",
-      );
+      if (current.run.status === "succeeded") {
+        setMessage(
+          `${current.matches.length} eligible matches ranked with a deterministic ResuLens match score.`,
+        );
+      } else if (current.run.status === "failed") {
+        setMessage(null);
+        setError(matchFailureMessage(current.run));
+      } else {
+        setMessage("Matching is still processing. You can refresh this page in a moment.");
+      }
     } catch (matchError) {
       setError(matchError instanceof Error ? matchError.message : "Matching failed. Try again.");
       setMessage(null);
@@ -435,7 +459,13 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
             onClick={createRun}
             disabled={busy || !approvedResumes.length}
           >
-            {busy ? "Preparing Matches…" : run ? "Refresh Matches" : "Find My Matches"}
+            {busy
+              ? "Preparing Matches…"
+              : run?.run.status === "failed"
+                ? "Retry Matches"
+                : run
+                  ? "Refresh Matches"
+                  : "Find My Matches"}
           </button>
           <span className="text-xs text-[var(--quiet)]">
             Missing provider data stays unknown and does not lower an otherwise eligible score.
@@ -489,6 +519,13 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
             >
               Your approved profile is being converted into a private matching signal. This page
               will not display results until the worker finishes.
+            </div>
+          ) : run.run.status === "failed" ? (
+            <div
+              className="mt-5 rounded-2xl border border-[#ff9285]/30 bg-[#ff9285]/[0.06] px-5 py-8 text-sm text-[var(--muted)]"
+              role="alert"
+            >
+              {matchFailureMessage(run.run)}
             </div>
           ) : run.matches.length ? (
             <div className="mt-5 grid gap-4">

@@ -49,7 +49,9 @@ export async function POST(request: Request) {
     }
     const body = createMatchRunSchema.safeParse(await request.json().catch(() => null));
     if (!body.success) return invalidRequest();
-    const result = await createMatchRun(userId, body.data.resumeId, body.data.preferences);
+    const result = await createMatchRun(userId, body.data.resumeId, body.data.preferences, {
+      retry: body.data.retry,
+    });
     return Response.json(result, { status: 202 });
   } catch (error) {
     if (error instanceof AuthenticationRequiredError) return unauthorized();

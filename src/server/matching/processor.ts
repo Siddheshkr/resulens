@@ -15,15 +15,13 @@ import {
   type MatchingJob,
 } from "@/server/matching/content";
 import { getEmbeddingModel } from "@/server/matching/constants";
+import { classifyEmbeddingError } from "@/server/matching/embedding-errors";
 import type { TablesUpdate } from "@/lib/supabase/database.types";
 
 const MAX_ATTEMPTS = 3;
 
 function safeError(error: unknown) {
-  if (error instanceof Error && error.message.includes("OPENAI_API_KEY")) {
-    return { code: "provider_unconfigured", message: "Embedding processing is not configured." };
-  }
-  return { code: "embedding_failed", message: "The matching signal could not be generated." };
+  return classifyEmbeddingError(error);
 }
 
 type EmbeddingJob = {

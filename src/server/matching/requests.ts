@@ -22,6 +22,7 @@ export const preferencesSchema = z.object({
 export const createMatchRunSchema = z.object({
   resumeId: z.string().uuid(),
   preferences: preferencesSchema.partial().optional(),
+  retry: z.boolean().optional().default(false),
 });
 
 export const jobActionSchema = z.object({

@@ -17,6 +17,7 @@ import {
   MAX_MATCH_CANDIDATES,
   MAX_MATCH_RESULTS,
 } from "@/server/matching/constants";
+import { embeddingFailureMessage } from "@/server/matching/embedding-errors";
 import { evaluateEligibility, type MatchingPreferences } from "@/server/matching/eligibility";
 import {
   calculateFreshness,
@@ -173,6 +174,7 @@ export async function createMatchRun(
   userId: string,
   resumeId: string,
   preferencePatch?: Partial<PreferencesInput>,
+  options: { retry?: boolean } = {},
 ): Promise<MatchRunResult> {
   const admin = createAdminSupabaseClient();
   const resume = await loadApprovedResume(admin, userId, resumeId);
@@ -187,6 +189,20 @@ export async function createMatchRun(
   );
   const embedding = await loadResumeEmbedding(admin, resume);
   if (!embedding) {
+    const resumeContentHash = sha256Text(buildResumeEmbeddingContent(resume.profile));
+    const expectedResumeSourceVersion = `profile:${resume.approved_profile_version}:model:${getEmbeddingModel()}:content:${resumeContentHash}`;
+    const { data: embeddingJob, error: embeddingJobError } = await admin
+      .from("embedding_jobs")
+      .select("status,last_error_code")
+      .eq("subject_type", "resume")
+      .eq("resume_id", resume.id)
+      .eq("user_id", userId)
+      .eq("source_version", expectedResumeSourceVersion)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (embeddingJobError) throw new Error("Could not check the resume matching signal");
+
     const { data: existingPending, error: pendingError } = await admin
       .from("match_runs")
       .select("id")
@@ -198,6 +214,55 @@ export async function createMatchRun(
       .eq("status", "embedding_pending")
       .maybeSingle();
     if (pendingError) throw new Error("Could not check the matching run");
+
+    if (embeddingJob?.status === "failed" && !options.retry) {
+      const failureMessage = embeddingFailureMessage(embeddingJob.last_error_code);
+      const failedRun =
+        existingPending ??
+        (
+          await admin
+            .from("match_runs")
+            .insert({
+              user_id: userId,
+              resume_id: resume.id,
+              resume_profile_version: resume.approved_profile_version as number,
+              preferences_revision: effectivePreferences.revision,
+              scoring_version: MATCHING_SCORING_VERSION,
+              embedding_model: getEmbeddingModel(),
+              source_snapshot_hash: sourcePendingHash,
+              status: "failed",
+              candidate_count: 0,
+              filter_snapshot: asJson(effectivePreferences),
+              error_code: embeddingJob.last_error_code ?? "embedding_failed",
+              error_message: failureMessage,
+              completed_at: new Date().toISOString(),
+            })
+            .select("id")
+            .single()
+        ).data;
+      if (!failedRun) throw new Error("Could not save the failed matching run");
+      if (existingPending) {
+        const { error: updateError } = await admin
+          .from("match_runs")
+          .update({
+            status: "failed",
+            error_code: embeddingJob.last_error_code ?? "embedding_failed",
+            error_message: failureMessage,
+            completed_at: new Date().toISOString(),
+          })
+          .eq("id", existingPending.id)
+          .eq("user_id", userId);
+        if (updateError) throw new Error("Could not update the failed matching run");
+      }
+      return {
+        runId: failedRun.id,
+        status: "failed",
+        candidateCount: 0,
+        profileVersion: resume.approved_profile_version as number,
+        preferencesRevision: effectivePreferences.revision,
+      };
+    }
+
     const pendingRun =
       existingPending ??
       (
@@ -401,6 +466,42 @@ export async function getMatchRun(userId: string, runId: string) {
   if (runError) throw new Error("Could not load the match run");
   if (!run) return null;
 
+  let resolvedRun =
+    run.status === "failed" && run.error_code
+      ? { ...run, error_message: embeddingFailureMessage(run.error_code) }
+      : run;
+  if (run.status === "embedding_pending") {
+    const { data: embeddingJob, error: embeddingJobError } = await admin
+      .from("embedding_jobs")
+      .select("status,last_error_code")
+      .eq("subject_type", "resume")
+      .eq("resume_id", run.resume_id)
+      .eq("user_id", userId)
+      .like("source_version", `profile:${run.resume_profile_version}:model:%`)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (embeddingJobError) throw new Error("Could not load the resume matching signal status");
+    if (embeddingJob?.status === "failed") {
+      const failureMessage = embeddingFailureMessage(embeddingJob.last_error_code);
+      const { data: failedRun, error: failedRunError } = await admin
+        .from("match_runs")
+        .update({
+          status: "failed",
+          error_code: embeddingJob.last_error_code ?? "embedding_failed",
+          error_message: failureMessage,
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", run.id)
+        .eq("user_id", userId)
+        .eq("status", "embedding_pending")
+        .select("*")
+        .maybeSingle();
+      if (failedRunError) throw new Error("Could not update the failed matching run");
+      if (failedRun) resolvedRun = failedRun;
+    }
+  }
+
   const { data: matches, error: matchesError } = await admin
     .from("job_matches")
     .select("*")
@@ -448,7 +549,7 @@ export async function getMatchRun(userId: string, runId: string) {
   );
 
   return {
-    run,
+    run: resolvedRun,
     matches: (matches ?? []).map((match) => ({
       ...match,
       job: jobs.get(match.job_posting_id) ?? null,

@@ -17,6 +17,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "worker:local": "node --env-file=.env.local scripts/run-local-workers.mjs",
+    "worker:local:watch": "node --env-file=.env.local scripts/run-local-workers.mjs --watch",
     "test:db": "supabase test db --local",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

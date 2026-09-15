@@ -4,6 +4,11 @@
 # working directory name when running `supabase init`.
 project_id = "resulens"
 
+# The scheduled ingestion endpoint still calls the app with its own worker
+# secret, while Supabase's gateway requires a legacy JWT for the cron caller.
+[functions.ingest-jobs]
+verify_jwt = true
+
 [api]
 enabled = true
 # Port to use for the API URL.
