@@ -38,12 +38,24 @@ export async function requestAccountDeletion(
   source: "application" | "clerk_webhook",
   admin = createAdminSupabaseClient(),
 ) {
-  const { data: existing } = await admin
+  const { data: existing, error: existingError } = await admin
     .from("account_deletion_jobs")
-    .select("status")
+    .select("status,source,locked_at")
     .eq("user_id", userId)
     .maybeSingle();
+  if (existingError) throw new Error("Could not inspect account cleanup state");
   if (existing?.status === "complete") return { status: "complete" as const };
+
+  if (
+    existing?.status === "processing" &&
+    existing.locked_at &&
+    Date.parse(existing.locked_at) > Date.now() - 10 * 60_000
+  ) {
+    // A Clerk deletion webhook can arrive while an application-triggered
+    // cleanup is still running. Never reset that fresh claim or start a
+    // second cleanup worker against the same account.
+    return { status: "pending" as const };
+  }
 
   const requestedAt = new Date().toISOString();
   await admin
@@ -51,17 +63,29 @@ export async function requestAccountDeletion(
     .update({ deletion_requested_at: requestedAt, deletion_status: "pending" })
     .eq("user_id", userId);
 
-  const { error } = await admin.from("account_deletion_jobs").upsert(
-    {
-      user_id: userId,
-      source,
-      status: "pending",
-      available_at: requestedAt,
-      locked_at: null,
-      last_error_code: null,
-    },
-    { onConflict: "user_id" },
-  );
+  const nextSource =
+    existing?.source === "application" || source === "application"
+      ? "application"
+      : "clerk_webhook";
+  const { error } = existing
+    ? await admin
+        .from("account_deletion_jobs")
+        .update({
+          source: nextSource,
+          status: "pending",
+          available_at: requestedAt,
+          locked_at: null,
+          last_error_code: null,
+        })
+        .eq("user_id", userId)
+    : await admin.from("account_deletion_jobs").insert({
+        user_id: userId,
+        source: nextSource,
+        status: "pending",
+        available_at: requestedAt,
+        locked_at: null,
+        last_error_code: null,
+      });
   if (error) throw new Error("Could not create account cleanup job");
   return runAccountDeletion(userId, admin);
 }

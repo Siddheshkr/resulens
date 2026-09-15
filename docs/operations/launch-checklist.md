@@ -4,14 +4,19 @@ Production deployment is allowed only after every blocking item has current evid
 
 ## Automated gates
 
-- [ ] `npm run format:check`
-- [ ] `npm run lint`
-- [ ] `npm run typecheck`
-- [ ] `npm test`
+- [x] `npm run format:check` — 2026-09-15, Node 24.20.0
+- [x] `npm run lint` — 2026-09-15, Node 24.20.0
+- [x] `npm run typecheck` — 2026-09-15, Node 24.20.0
+- [x] `npm test` — 47 tests passed on 2026-09-15
 - [ ] `npm run test:db`
-- [ ] `npm run build`
-- [ ] `npm run test:e2e`
-- [ ] Production dependency audit has no reachable high/critical advisory
+- [x] `npm run build` — 2026-09-15, Node 24.20.0
+- [x] `npm run test:e2e` — 26 desktop/mobile tests passed on 2026-09-15
+- [x] Production dependency audit has no reachable high/critical advisory — `npm audit --omit=dev --audit-level=high` reported 0 vulnerabilities on 2026-09-15
+
+`npm run test:db` remains unchecked locally because the developer environment has
+no local Postgres/Docker service (`ECONNREFUSED 127.0.0.1:54322`). Hosted pgTAP
+suites are the current Docker-free database evidence; rerun the local command in
+CI or a developer environment with Supabase local services enabled.
 
 ## Staging integration gates
 

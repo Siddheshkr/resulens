@@ -1,6 +1,6 @@
 # ResuLens Work Tracker
 
-Last reviewed: 2026-09-11
+Last reviewed: 2026-09-15
 
 This file is the lightweight, repository-level source of truth for planned and completed work. Product and architecture decisions belong in `context.md`; contributor rules belong in `AGENTS.md`; runtime logs belong in the relevant observability system.
 
@@ -54,10 +54,9 @@ Completed task format:
   - Depends on: [docs/operations/launch-checklist.md](docs/operations/launch-checklist.md) with every blocking item evidenced
   - Verify: Vercel production deployment, scheduled Edge Functions, migration record, backup/PITR check, alert links, and rollback target
 
-- [ ] Push the Phase 1–4 audit fixes and verify GitHub Actions from a clean checkout
-  - Owner: unassigned
-  - Depends on: review and push of the current working-tree changes
-  - Verify: the `quality` and `database` jobs pass; the previous database job failed because local Supabase attempted OIDC discovery against the placeholder Clerk domain, and the tracked test configuration now disables that external lookup.
+- [x] Push the Phase 1–4 audit fixes and verify GitHub Actions from a clean checkout — 2026-09-11
+  - Evidence: commit `9550c41` is on `main` and `origin/main`.
+  - Verification: GitHub Actions run `34556529026` completed successfully for both quality and database jobs; the local pgTAP mirror remains Docker-dependent.
 
 - [ ] Run a real Clerk email/Google OAuth and webhook delivery smoke test
   - Owner: unassigned
@@ -116,9 +115,21 @@ When adding a blocker, use this form:
 
 ## Completed
 
+- [x] Add the selected ResuLens brand mark to product and authentication navigation — 2026-09-15
+  - Evidence: supplied resume/profile/lens artwork is served from `public/brand/resulens-logo.png`; the shared logo component frames the visible glyph so the export canvas does not create a false gap before the wordmark.
+  - Verification: repository-wide `npm run format:check`, `npm run lint`, `npm run typecheck`, and `git diff --check` pass.
+
 - [x] Close source-level Phase 1–5 audit defects and harden the hosted schema — 2026-09-11
   - Evidence: first-visit profile initialization now works on Dashboard, Settings, account APIs, and resume upload; worker secrets use one constant-time verifier; ingestion requests have bounded Zod validation; ranked matches collapse likely cross-provider duplicates; direct profile deletion and deletion-state edits are no longer available to authenticated browser sessions.
   - Verification: Node 24 formatting, lint, strict TypeScript, 45 Vitest tests, production build, dependency audit, and 26 desktop/mobile Playwright checks pass. Hosted migration `20260911022141_phase_completion_hardening` is applied; profile, job, and matching pgTAP suites reach `ok 8`, `ok 12`, and `ok 20`; Supabase security advisors report no findings. A synthetic live OpenAI request reached the provider but was rejected with `credit_balance_exhausted`, so paid worker verification remains in Now.
+
+- [x] Remove opaque applicant/job identifiers from worker response payloads — 2026-09-15
+  - Evidence: `process-resumes` and `process-embeddings` now return status-only result entries; scheduler responses do not need identifiers.
+  - Verification: Node 24 formatting, lint, strict TypeScript, 47 Vitest tests, production build, and 26 desktop/mobile Playwright checks pass after the change.
+
+- [x] Make worker recovery and account deletion claims race-safe — 2026-09-15
+  - Evidence: resume and embedding retry resets require the current worker lock; duplicate Clerk deletion signals preserve a fresh cleanup claim instead of starting a second worker.
+  - Verification: Node 24 formatting, lint, strict TypeScript, 47 Vitest tests, production build, and 26 desktop/mobile Playwright checks pass.
 
 - [x] Establish and apply the ResuLens interface system across the application — 2026-09-10
   - Evidence: `design.md` adapts the supplied Framer analysis into ResuLens-specific color, type, layout, component, responsive, content, and accessibility rules; the landing, navigation, Clerk auth, dashboard, upload, resume review, job feed/detail, and match feed now use the same dark instrument system.

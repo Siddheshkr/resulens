@@ -113,19 +113,19 @@ button {
   line-height: 1.3;
 }
 
-.brand-mark {
-  display: grid;
-  width: 2.25rem;
-  height: 2.25rem;
-  place-items: center;
-  border: 1px solid #3a3a3a;
-  border-radius: 50%;
-  background: #ffffff;
-  color: #090909;
-  color: var(--foreground);
-  font-size: 0.9rem;
-  font-weight: 800;
-  letter-spacing: -0.04em;
+.brand-logo-frame {
+  display: block;
+  width: 2.4rem;
+  height: 2.3rem;
+  overflow: hidden;
+}
+
+.brand-logo {
+  display: block;
+  width: 4.4rem;
+  max-width: none;
+  height: auto;
+  transform: translate(-1.14rem, -0.88rem);
 }
 
 .header-link,

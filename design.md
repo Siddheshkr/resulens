@@ -14,6 +14,10 @@ analysis surfaces. The memorable element is the **lens field**—a violet-to-cor
 panel that frames a resume and its evidence-backed match. Color represents active
 analysis, never general decoration.
 
+The brand mark is a blue resume, profile, and lens glyph. Use the supplied
+transparent artwork in product navigation and authentication entry points; keep it
+small and let the surrounding interface remain monochrome.
+
 The interface is dark-only. It should feel confident and editorial, not like a
 collection of generic SaaS cards.
 

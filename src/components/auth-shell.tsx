@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { ResuLensLogo } from "@/components/resulens-logo";
+
 export {
   AuthLoadingState,
   ClerkDegradedMessage,
@@ -18,9 +20,7 @@ export function AuthShell({ children, eyebrow, description }: AuthShellProps) {
       <div className="auth-shell">
         <section className="auth-story" aria-label="ResuLens authentication">
           <Link href="/" className="auth-story-mark" aria-label="Back to ResuLens home">
-            <span className="brand-mark" aria-hidden="true">
-              R
-            </span>
+            <ResuLensLogo priority />
             <span>ResuLens</span>
           </Link>
 

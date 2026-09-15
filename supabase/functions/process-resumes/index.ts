@@ -46,12 +46,14 @@ function parseQueueMessages(value: unknown): QueueMessage[] {
   });
 }
 
-async function resetClaimedJob(jobId: string, resumeId: string) {
+async function resetClaimedJob(jobId: string, resumeId: string, workerId: string) {
   const { data: job } = await supabase
     .from("resume_processing_jobs")
-    .select("attempt_count")
+    .select("attempt_count,locked_by")
     .eq("id", jobId)
     .maybeSingle();
+  if (!job) return true;
+  if (job.locked_by !== workerId) return false;
   const nextAttempt = Math.min(3, Number(job?.attempt_count ?? 0) + 1);
   const terminal = nextAttempt >= 3;
 
@@ -69,6 +71,7 @@ async function resetClaimedJob(jobId: string, resumeId: string) {
     })
     .eq("id", jobId)
     .eq("status", "processing")
+    .eq("locked_by", workerId)
     .select("id")
     .maybeSingle();
 
@@ -113,7 +116,7 @@ Deno.serve(async () => {
   }
 
   const messages = parseQueueMessages(rawMessages);
-  const results: Array<{ resumeId: string; status: string }> = [];
+  const results: Array<{ status: string }> = [];
 
   for (const message of messages) {
     const { data: currentJob } = await supabase
@@ -179,10 +182,10 @@ Deno.serve(async () => {
         status?: string;
       };
       const status = payload.status ?? (response.ok ? "processed" : "failed");
-      results.push({ resumeId: message.resumeId, status });
+      results.push({ status });
 
       if (!response.ok) {
-        if (await resetClaimedJob(message.jobId, message.resumeId)) {
+        if (await resetClaimedJob(message.jobId, message.resumeId, workerId)) {
           await acknowledge(message.msgId);
         }
         continue;
@@ -192,11 +195,11 @@ Deno.serve(async () => {
         await acknowledge(message.msgId);
       }
     } catch {
-      const terminal = await resetClaimedJob(message.jobId, message.resumeId);
+      const terminal = await resetClaimedJob(message.jobId, message.resumeId, workerId);
       if (terminal) {
         await acknowledge(message.msgId);
       }
-      results.push({ resumeId: message.resumeId, status: terminal ? "failed" : "queued" });
+      results.push({ status: terminal ? "failed" : "queued" });
     }
   }
 

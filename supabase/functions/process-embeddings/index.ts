@@ -42,14 +42,16 @@ async function acknowledge(msgId: number) {
   await supabase.rpc("ack_embedding_processing", { p_message_id: msgId });
 }
 
-async function resetJob(embeddingJobId: string) {
+async function resetJob(embeddingJobId: string, workerId: string) {
   const { data: job } = await supabase
     .from("embedding_jobs")
-    .select("attempt_count")
+    .select("attempt_count,locked_by")
     .eq("id", embeddingJobId)
     .maybeSingle();
+  if (!job) return true;
+  if (job.locked_by !== workerId) return false;
   const { attemptCount, terminal } = nextEmbeddingAttempt(Number(job?.attempt_count ?? 0));
-  await supabase
+  const { data: reset } = await supabase
     .from("embedding_jobs")
     .update({
       status: terminal ? "failed" : "queued",
@@ -62,7 +64,11 @@ async function resetJob(embeddingJobId: string) {
       last_error_message: "The matching worker could not process the embedding.",
     })
     .eq("id", embeddingJobId)
-    .eq("status", "processing");
+    .eq("status", "processing")
+    .eq("locked_by", workerId)
+    .select("id")
+    .maybeSingle();
+  if (!reset) return false;
   return terminal;
 }
 
@@ -79,7 +85,7 @@ Deno.serve(async () => {
   }
 
   const messages = parseQueueMessages(rawMessages);
-  const results: Array<{ embeddingJobId: string; status: string }> = [];
+  const results: Array<{ status: string }> = [];
   for (const message of messages) {
     const { data: current } = await supabase
       .from("embedding_jobs")
@@ -126,20 +132,17 @@ Deno.serve(async () => {
         status?: string;
       };
       const status = payload.status ?? (response.ok ? "succeeded" : "failed");
-      results.push({ embeddingJobId: message.embeddingJobId, status });
+      results.push({ status });
       if (!response.ok) {
-        if (await resetJob(message.embeddingJobId)) await acknowledge(message.msgId);
+        if (await resetJob(message.embeddingJobId, workerId)) await acknowledge(message.msgId);
         continue;
       }
       if (["succeeded", "skipped", "stale", "idle", "failed"].includes(status)) {
         await acknowledge(message.msgId);
       }
     } catch {
-      const terminal = await resetJob(message.embeddingJobId);
-      results.push({
-        embeddingJobId: message.embeddingJobId,
-        status: terminal ? "failed" : "queued",
-      });
+      const terminal = await resetJob(message.embeddingJobId, workerId);
+      results.push({ status: terminal ? "failed" : "queued" });
       if (terminal) await acknowledge(message.msgId);
     }
   }

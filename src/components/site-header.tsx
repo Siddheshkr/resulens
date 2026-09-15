@@ -1,15 +1,14 @@
 import Link from "next/link";
 
 import { AuthControls } from "@/components/auth-controls";
+import { ResuLensLogo } from "@/components/resulens-logo";
 
 export function SiteHeader() {
   return (
     <header className="site-header">
       <div className="site-header-inner">
         <Link href="/" className="site-brand" aria-label="ResuLens home" translate="no">
-          <span className="brand-mark" aria-hidden="true">
-            R
-          </span>
+          <ResuLensLogo priority />
           <span>ResuLens</span>
         </Link>
         <nav className="site-nav" aria-label="Primary navigation">
