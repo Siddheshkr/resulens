@@ -1,6 +1,6 @@
 # ResuLens Work Tracker
 
-Last reviewed: 2026-09-15
+Last reviewed: 2026-09-16
 
 This file is the lightweight, repository-level source of truth for planned and completed work. Product and architecture decisions belong in `context.md`; contributor rules belong in `AGENTS.md`; runtime logs belong in the relevant observability system.
 
@@ -36,7 +36,7 @@ Completed task format:
 
 - [ ] Deploy and smoke-test all bounded workers in staging (`process-resumes`, `process-embeddings`, `ingest-jobs`, and `maintain-production`)
   - Owner: unassigned
-  - Depends on: separate staging Clerk/Supabase/OpenAI/provider credentials, funded OpenAI API usage, a reachable staging app URL, and worker secrets; the linked project currently has no deployed Edge Functions
+  - Depends on: separate staging Clerk/Supabase/OpenAI/provider credentials, funded OpenAI API usage, a reachable staging app URL, and worker secrets; the linked project currently has only `ingest-jobs` deployed, while the resume, embedding, and maintenance workers remain to deploy
   - Verify: synthetic text/scanned resume workflow, ingestion, matching, stalled-task recovery, retention expiry, and no sensitive logs
 
 - [ ] Configure Sentry dashboards and alerts for staging and production
@@ -68,18 +68,27 @@ Completed task format:
   - Depends on: the applied Phase 2 migration, funded OpenAI API usage, worker secret, deployed app URL, and a synthetic PDF
   - Verify: signed upload, completion, bounded worker processing, profile review, approval, retry, refresh, and deletion complete without raw resume content in logs
   - Progress (2026-09-15): the Docker-free local runner (`npm run worker:local:watch`) now consumes the same private queue and invokes the existing localhost processor; a real local upload completed extraction and reached `needs_review` with a draft profile. Approval, embedding, and deletion still need to be exercised from the signed-in UI.
+  - Browser verification (2026-09-16): authenticated dashboard upload validation, approved resume review/edit navigation, and settings retention controls were exercised locally. No destructive resume or account deletion was invoked.
 
 - [ ] Configure and smoke-test the Phase 3 job ingestion worker
   - Owner: unassigned
   - Depends on: provider credentials, one or more curated board/site rows, `JOB_INGESTION_SECRET`, and a deployed app URL
   - Verify: a synthetic or permitted provider run is idempotent, partial provider failure is isolated, stale jobs expire only after a complete run, and `/dashboard/jobs` shows normalized listings without raw payloads
-  - Progress (2026-09-15): local-first workflow is verified independently of Vercel. `.env.local` contains the Supabase service-role key, worker secret, and Adzuna credentials; localhost health returns 200; a local bounded ingestion run completed `partial` with 5 pages, 100 records seen/upserted, and 0 failures; hosted data now has 101 active postings; and `/dashboard/jobs` renders the normalized listings. Hosted `ingest-jobs` Edge Function version 3 and Vault secrets are configured; its six-hour cron is intentionally paused while deployment verification is deferred until the Vercel Production service-role variable is corrected.
+  - Progress (2026-09-15): local-first workflow is verified independently of Vercel. `.env.local` contains the Supabase service-role key, worker secret, and Adzuna credentials; localhost health returns 200; a local bounded ingestion run completed `partial` with 5 pages, 100 records seen/upserted, and 0 failures; hosted data now has 101 active postings; and `/dashboard/jobs` renders the normalized listings. Hosted `ingest-jobs` Edge Function version 4 is active and Vault secrets are configured; its six-hour cron is intentionally paused while deployment verification is deferred until the Vercel Production service-role variable is corrected.
+  - Browser verification (2026-09-16): `/dashboard/jobs` showed 40 active listings; Angular search, country/workplace filtering, intentional empty state, source links, and an internal job-detail route were exercised locally.
 
 - [ ] Configure and smoke-test the Phase 4 embedding and matching worker
   - Owner: unassigned
   - Depends on: hosted Phase 4 migrations, funded OpenAI API usage, `MATCHING_WORKER_SECRET`, a reachable deployed app URL, and synthetic approved resume/job rows
   - Verify: resume and job queue messages are processed with bounded retries, stale/deleted revisions cannot write vectors, a match run reaches `succeeded`, top-ten explanations cache safely, and no applicant content appears in logs
-  - Progress (2026-09-15): the same Docker-free local runner can poll the embedding queue without exposing identifiers; bounded job-embedding delivery works. The approved resume embedding now reaches a terminal `provider_quota_exhausted` state when the configured OpenAI project has no credits, and the match run/browser show an actionable failure instead of spinning forever. Add provider credits, then click Retry Matches and run the local worker again.
+  - Progress (2026-09-16): after provider credits were added, a one-token non-sensitive `text-embedding-3-small` probe succeeded. Clicking Retry Matches and running the Docker-free local worker completed the approved resume embedding plus five job embeddings; the latest authenticated match run reached `succeeded` with 4 candidates, and the browser showed four ranked opportunities with no console errors. Remaining job embeddings are intentionally processed in bounded batches to conserve credits; hosted worker deployment, explanations, and the full provider smoke gate remain outstanding.
+  - Browser verification (2026-09-16): match refresh, details, save → dismissed → applied → saved transitions, relevance feedback replacement, and cached top-ten explanations were exercised locally; the ranked feed remained visible throughout.
+
+- [ ] Resolve intermittent Clerk hosted-bundle loading in the local browser environment
+  - Owner: unassigned
+  - Depends on: Clerk CDN/network availability in the affected browser context
+  - Verify: a fresh signed-out browser loads the Clerk form without a hosted-bundle error; the existing bounded timeout and Retry fallback remain the safe failure path.
+  - Progress (2026-09-16): the fallback is working and the form eventually renders when the Clerk bundle responds, but a fresh Brave context intermittently reports `failed_to_load_clerk_js`. This is an external Clerk delivery/connectivity issue, not a route authorization failure; no credentials were changed.
 
 - [ ] Run the paid-provider release gate for embeddings and explanations
   - Owner: unassigned
