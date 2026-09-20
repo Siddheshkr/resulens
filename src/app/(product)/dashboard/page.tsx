@@ -45,18 +45,18 @@ export default async function DashboardPage() {
             <span className="signal-dot" aria-hidden="true" />
             Your workspace
           </p>
-          <h1>Read your resume. Find the work.</h1>
+          <h1>Your workspace</h1>
           <p>
-            Upload a private PDF, inspect the extracted claims, and approve a version before it
-            shapes matches.
+            Start with your resume. Review what we find, then discover jobs that fit your
+            experience.
           </p>
         </div>
         <div className="page-intro-actions">
           <Link href="/dashboard/matches" className="button-primary">
-            Open Match Feed
+            View matches
           </Link>
           <Link href="/dashboard/jobs" className="button-secondary">
-            Browse Jobs
+            Browse jobs
           </Link>
         </div>
       </div>
@@ -71,8 +71,8 @@ export default async function DashboardPage() {
         <section className="resume-history-panel" aria-labelledby="resume-history-title">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="eyebrow">Document history</p>
-              <h2 id="resume-history-title">Resume scans</h2>
+              <p className="eyebrow">Pick up where you left off</p>
+              <h2 id="resume-history-title">Your resumes</h2>
             </div>
             <span className="page-count">{resumes?.length ?? 0} scans</span>
           </div>
@@ -91,7 +91,7 @@ export default async function DashboardPage() {
                       {resume.page_count
                         ? `${resume.page_count} page${resume.page_count === 1 ? "" : "s"}`
                         : "Page count pending"}{" "}
-                      · stage: {resume.processing_stage.replaceAll("_", " ")}
+                      · {resume.processing_stage.replaceAll("_", " ")}
                     </p>
                     {resume.error_message ? (
                       <p className="mt-2 text-xs text-[var(--danger)]">{resume.error_message}</p>
@@ -103,8 +103,11 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div className="empty-state compact-empty">
-              <strong>No scans yet</strong>
-              <p>Your first private resume scan will appear here.</p>
+              <strong>Your resume library starts here</strong>
+              <p>
+                Upload a PDF to get started. You can review and correct the extracted profile before
+                using it for matches.
+              </p>
             </div>
           )}
         </section>

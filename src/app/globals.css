@@ -850,7 +850,7 @@ textarea::placeholder {
 .product-page {
   width: min(100%, 75rem);
   margin: 0 auto;
-  padding: clamp(3rem, 7vw, 6rem) clamp(1.25rem, 3vw, 1.875rem) 6rem;
+  padding: clamp(2rem, 4vw, 3.5rem) clamp(1.25rem, 3vw, 1.875rem) 6rem;
 }
 
 .page-intro {
@@ -863,18 +863,18 @@ textarea::placeholder {
 }
 
 .page-intro h1 {
-  max-width: 13ch;
-  margin: 1rem 0 0;
-  font-size: clamp(2.8rem, 6vw, 5.6rem);
+  max-width: 24ch;
+  margin: 0.65rem 0 0;
+  font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 570;
-  letter-spacing: -0.065em;
-  line-height: 0.9;
+  letter-spacing: -0.045em;
+  line-height: 1.12;
   text-wrap: balance;
 }
 
 .page-intro > div > p:last-child {
   max-width: 42rem;
-  margin: 1.4rem 0 0;
+  margin: 0.85rem 0 0;
   color: var(--muted);
   font-size: 0.95rem;
   line-height: 1.55;
@@ -901,8 +901,8 @@ textarea::placeholder {
 /* Dashboard Workspace */
 .workspace-grid {
   display: grid;
-  margin-top: 4rem;
-  grid-template-columns: minmax(0, 1.2fr) minmax(19rem, 0.8fr);
+  margin-top: 2rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: start;
   gap: 1rem;
 }
@@ -916,8 +916,7 @@ textarea::placeholder {
 }
 
 .upload-instrument {
-  min-height: 34rem;
-  padding: clamp(1.5rem, 4vw, 2.5rem);
+  padding: clamp(1.25rem, 3vw, 2rem);
 }
 
 .upload-heading h2 {
@@ -1013,7 +1012,7 @@ textarea::placeholder {
   gap: 0.75rem;
   color: var(--muted);
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: 0.875rem;
   line-height: 1.55;
 }
 
@@ -1023,10 +1022,10 @@ textarea::placeholder {
 
 .resume-history-panel {
   min-width: 0;
-  padding: 1.5rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
   border: 1px solid var(--border);
   border-radius: 1.25rem;
-  background: var(--input-background);
+  background: var(--card);
 }
 
 .resume-history-panel h2 {
@@ -1057,6 +1056,18 @@ textarea::placeholder {
   border-color: var(--input-border);
   background: var(--card-strong);
   transform: translateY(-1px);
+}
+
+.resume-history-row > div {
+  min-width: 0;
+}
+
+.resume-history-row strong {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 0.95rem;
+  font-weight: 550;
+  margin-bottom: 0.4rem;
 }
 
 /* Resume Detail / Review Page */
@@ -1104,25 +1115,58 @@ textarea::placeholder {
 /* Jobs listing page & details */
 .job-filter-bar {
   display: grid;
-  gap: 0.65rem;
+  gap: 1rem;
   margin-top: 2rem;
-  padding: 0.7rem;
+  padding: 1.25rem;
   border: 1px solid var(--border);
   border-radius: 1rem;
   background: var(--card);
   grid-template-columns: minmax(0, 1fr) 9rem 10rem auto;
+  align-items: end;
+}
+
+.filter-field {
+  display: grid;
+  min-width: 0;
+  gap: 0.6rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.filter-field .product-input {
+  width: 100%;
+  font-weight: 400;
+}
+
+.results-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 1.5rem 0 1rem;
+  font-size: 0.875rem;
+}
+
+.results-toolbar span {
+  color: var(--muted);
+}
+.results-toolbar a {
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .job-list {
   display: grid;
-  gap: 0;
-  margin-top: 3rem;
-  border-top: 1px solid var(--border);
+  gap: 1rem;
+  margin-top: 0;
 }
 
 .job-card {
-  padding: 2rem 0;
-  border-bottom: 1px solid var(--border);
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--card);
   transition:
     border-color var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-out);
@@ -1131,12 +1175,11 @@ textarea::placeholder {
 .job-card:hover,
 .job-card:focus-within {
   border-color: var(--input-border);
-  transform: translateX(4px);
 }
 
 .job-card h2 {
   margin: 0.55rem 0 0;
-  font-size: clamp(1.35rem, 3vw, 2rem);
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
   font-weight: 570;
   letter-spacing: -0.045em;
   text-wrap: balance;
@@ -1144,11 +1187,11 @@ textarea::placeholder {
 
 .job-source {
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.875rem;
 }
 
 .jobs-empty {
-  margin-top: 3rem;
+  margin-top: 2rem;
 }
 
 .job-detail-page {
@@ -1247,8 +1290,8 @@ textarea::placeholder {
   min-width: 8rem;
   padding: 1rem;
   border-radius: 1rem;
-  background: var(--foreground);
-  color: var(--background);
+  background: var(--accent-surface);
+  color: var(--brand);
   text-align: right;
   flex-shrink: 0;
 }
@@ -1266,9 +1309,60 @@ textarea::placeholder {
   display: block;
   max-width: 7rem;
   margin-top: 0.55rem;
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.15;
+}
+
+.match-job-title {
+  margin-top: 0.5rem;
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  font-weight: 580;
+  letter-spacing: -0.03em;
+}
+
+.match-job-title a:hover {
+  color: var(--brand);
+}
+
+.score-signals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding: 1rem 0;
+  border-block: 1px solid var(--border);
+}
+
+.score-signal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.score-signal-label {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.match-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 680px) {
+  .score-signals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .resume-history-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
 
 /* Settings & Privacy Controls */
@@ -1890,7 +1984,7 @@ textarea::placeholder {
     grid-template-columns: 1fr 1fr;
   }
 
-  .job-filter-bar .job-search-input {
+  .job-filter-bar .job-search-field {
     grid-column: 1 / -1;
   }
 }
@@ -1944,7 +2038,7 @@ textarea::placeholder {
     grid-template-columns: 1fr;
   }
 
-  .job-filter-bar .job-search-input {
+  .job-filter-bar .job-search-field {
     grid-column: auto;
   }
 

@@ -341,21 +341,21 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
         <div>
           <p className="signal-label">
             <span className="signal-dot" aria-hidden="true" />
-            Match intelligence
+            Built around your experience
           </p>
-          <h1>A shortlist you can actually audit.</h1>
+          <h1>Your matches</h1>
           <p>
-            ResuLens applies hard eligibility constraints first, then combines full-text and vector
-            retrieval. Scores are product signals — never hiring decisions.
+            Discover roles that fit your approved resume. See what aligns, what is missing, and why
+            each job made your shortlist.
           </p>
         </div>
-        <span className="page-count">ResuLens match scores</span>
+        <span className="page-count">Fit signals, not hiring predictions</span>
       </div>
 
       <section className="match-controls" aria-labelledby="match-controls-title">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="eyebrow">Control the signal</p>
+            <p className="eyebrow">Shape your shortlist</p>
             <h2 id="match-controls-title" className="match-controls-title">
               Match preferences
             </h2>
@@ -468,7 +468,7 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
                   : "Find My Matches"}
           </button>
           <span className="text-xs text-[var(--quiet)]">
-            Missing provider data stays unknown and does not lower an otherwise eligible score.
+            Missing job details are marked unknown, not counted against you.
           </span>
         </div>
         {message ? (
@@ -487,7 +487,7 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
         <section className="mt-10" aria-labelledby="ranked-matches-title">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="eyebrow">Ranked feed</p>
+              <p className="eyebrow">Best fit first</p>
               <h2
                 id="ranked-matches-title"
                 className="mt-2 text-2xl font-extrabold text-[var(--foreground)]"
@@ -543,8 +543,8 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
                         <p className="job-source">
                           #{match.rank} · {relatedName(job.companies) ?? "Company not specified"}
                         </p>
-                        <h3 className="mt-2 text-xl font-extrabold tracking-tight text-[var(--foreground)]">
-                          {job.title}
+                        <h3 className="match-job-title">
+                          <Link href={`/dashboard/jobs/${job.id}`}>{job.title}</Link>
                         </h3>
                         <p className="mt-1 text-sm text-[var(--muted)]">
                           {job.location_text ?? "Location not specified"} · {job.workplace_type}
@@ -561,13 +561,10 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
                       {job.description.slice(0, 420)}
                       {job.description.length > 420 ? "…" : ""}
                     </p>
-                    <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+                    <div className="score-signals" aria-label="Match score breakdown">
                       {scoreSignals(match.score_breakdown).map((signal) => (
-                        <div
-                          key={signal.name}
-                          className="rounded-xl border border-[var(--border)] bg-[var(--input-background)] px-3 py-2"
-                        >
-                          <p className="text-[0.62rem] font-bold uppercase tracking-[0.1em] text-[var(--quiet)]">
+                        <div key={signal.name} className="score-signal">
+                          <p className="score-signal-label">
                             {signalLabels[signal.name] ?? signal.name}
                           </p>
                           <p className="mt-1 text-sm font-bold text-[var(--foreground)]">
@@ -596,7 +593,7 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
                     ) : null}
                     {match.explanation?.status === "succeeded" && match.explanation.explanation ? (
                       <div className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--card-strong)] px-4 py-4 text-sm leading-6 text-[var(--muted)]">
-                        <p className="font-bold text-[var(--foreground)]">Grounded read</p>
+                        <p className="font-bold text-[var(--foreground)]">Why this role fits</p>
                         {(() => {
                           const explanation = asRecord(match.explanation.explanation);
                           return (
@@ -613,7 +610,7 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
                         Explanation unavailable; the deterministic ranked result remains valid.
                       </p>
                     ) : null}
-                    <div className="mt-5 flex flex-wrap items-center gap-2">
+                    <div className="match-actions">
                       <Link
                         href={`/dashboard/jobs/${job.id}`}
                         className="button-secondary button-sm"
@@ -702,10 +699,15 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
         </section>
       ) : (
         <div className="empty-state mt-10">
-          <p className="text-lg font-bold text-[var(--foreground)]">Your ranked feed is waiting.</p>
+          <p className="text-lg font-bold text-[var(--foreground)]">
+            {approvedResumes.length
+              ? "Ready to find your next role?"
+              : "Start with an approved resume"}
+          </p>
           <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-[var(--muted)]">
-            Select an approved resume above and choose Find My Matches to generate ranked
-            opportunities backed by deterministic scores and evidence.
+            {approvedResumes.length
+              ? "Choose your resume and preferences above, then select Find My Matches. Your shortlist will appear here."
+              : "Upload and review your resume in the workspace first. Once approved, you can use it to find relevant jobs here."}
           </p>
         </div>
       )}

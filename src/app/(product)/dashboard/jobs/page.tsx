@@ -52,65 +52,72 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
         <div>
           <p className="signal-label">
             <span className="signal-dot" aria-hidden="true" />
-            Job signal
+            Explore opportunities
           </p>
-          <h1>A calmer job search.</h1>
+          <h1>Find your next role</h1>
           <p>
-            Search normalized listings from documented job APIs, then open the match feed for
-            deterministic ranking and evidence-grounded explanations.
+            Browse current openings by keyword, location, and workplace. For a shortlist based on
+            your resume, head to Matches.
           </p>
         </div>
         <div className="page-intro-actions">
-          <span className="page-count">{jobs?.length ?? 0} active listings</span>
           <Link href="/dashboard/matches" className="button-primary">
-            Open Match Feed
+            View my matches
           </Link>
         </div>
       </div>
 
       <form className="job-filter-bar" method="get">
-        <label className="sr-only" htmlFor="job-search">
-          Search jobs
+        <label className="filter-field job-search-field" htmlFor="job-search">
+          Role or keyword
+          <input
+            id="job-search"
+            name="search"
+            defaultValue={search}
+            placeholder="Try ‘TypeScript’ or ‘product engineer’…"
+            autoComplete="off"
+            className="product-input job-search-input"
+          />
         </label>
-        <input
-          id="job-search"
-          name="search"
-          defaultValue={search}
-          placeholder="Try ‘TypeScript’ or ‘product engineer’…"
-          autoComplete="off"
-          className="product-input job-search-input"
-        />
-        <label className="sr-only" htmlFor="job-country">
+        <label className="filter-field" htmlFor="job-country">
           Country code
+          <input
+            id="job-country"
+            name="country"
+            defaultValue={country}
+            maxLength={2}
+            placeholder="e.g. IN…"
+            autoComplete="country"
+            className="product-input uppercase"
+          />
         </label>
-        <input
-          id="job-country"
-          name="country"
-          defaultValue={country}
-          maxLength={2}
-          placeholder="e.g. IN…"
-          autoComplete="country"
-          className="product-input uppercase"
-        />
-        <label className="sr-only" htmlFor="job-workplace">
-          Workplace type
+        <label className="filter-field" htmlFor="job-workplace">
+          Workplace
+          <select
+            id="job-workplace"
+            name="workplace"
+            defaultValue={workplace}
+            className="product-input"
+          >
+            <option value="">Any workplace</option>
+            <option value="remote">Remote</option>
+            <option value="hybrid">Hybrid</option>
+            <option value="onsite">On-site</option>
+            <option value="unknown">Not specified</option>
+          </select>
         </label>
-        <select
-          id="job-workplace"
-          name="workplace"
-          defaultValue={workplace}
-          className="product-input"
-        >
-          <option value="">Any workplace</option>
-          <option value="remote">Remote</option>
-          <option value="hybrid">Hybrid</option>
-          <option value="onsite">On-site</option>
-          <option value="unknown">Not specified</option>
-        </select>
         <button type="submit" className="button-primary">
           Search Jobs
         </button>
       </form>
+
+      <div className="results-toolbar">
+        <p>
+          Showing {jobs?.length ?? 0} {(jobs?.length ?? 0) === 1 ? "role" : "roles"}
+          <span> · Most recent first · Up to 40 results</span>
+        </p>
+        {search || country || workplace ? <Link href="/dashboard/jobs">Clear filters</Link> : null}
+      </div>
 
       {jobs?.length ? (
         <div className="job-list">
@@ -139,10 +146,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
                     </h2>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Link
-                      href={`/dashboard/jobs/${job.id}`}
-                      className="button-secondary"
-                    >
+                    <Link href={`/dashboard/jobs/${job.id}`} className="button-secondary">
                       Details
                     </Link>
                     <a
@@ -159,7 +163,13 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
                   {job.location_text ? (
                     <span className="profile-chip">{job.location_text}</span>
                   ) : null}
-                  <span className="profile-chip profile-chip-violet">{job.workplace_type}</span>
+                  <span className="profile-chip">
+                    {job.workplace_type === "unknown"
+                      ? "Workplace not specified"
+                      : job.workplace_type === "onsite"
+                        ? "On-site"
+                        : job.workplace_type}
+                  </span>
                   {job.employment_type ? (
                     <span className="profile-chip">{job.employment_type}</span>
                   ) : null}
@@ -180,10 +190,15 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
         </div>
       ) : (
         <div className="empty-state jobs-empty">
-          <p className="text-lg font-bold text-[var(--foreground)]">No normalized listings yet.</p>
+          <p className="text-lg font-bold text-[var(--foreground)]">
+            {search || country || workplace
+              ? "No roles match these filters"
+              : "No openings available yet"}
+          </p>
           <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-[var(--muted)]">
-            Configure an Adzuna query or a curated Greenhouse/Lever board, then run the bounded
-            ingestion worker. This empty state is intentional; ResuLens never invents job data.
+            {search || country || workplace
+              ? "Try a broader keyword or clear your filters to see more opportunities."
+              : "New listings will appear here when they become available. In the meantime, review your resume so you are ready to match."}
           </p>
         </div>
       )}
