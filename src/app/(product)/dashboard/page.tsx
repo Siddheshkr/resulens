@@ -2,8 +2,9 @@ import { redirect } from "next/navigation";
 
 import Link from "next/link";
 
-import { ResumeUploadCard } from "@/components/resume-upload-card";
 import { OnboardingPanel } from "@/components/onboarding-panel";
+import { ResumeUploadCard } from "@/components/resume-upload-card";
+import { StatusPill } from "@/components/status-pill";
 import { AuthenticationRequiredError, requireUser } from "@/lib/auth/require-user";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { ensureUserProfile } from "@/server/accounts/profile";
@@ -44,64 +45,59 @@ export default async function DashboardPage() {
             <span className="signal-dot" aria-hidden="true" />
             Your workspace
           </p>
-          <h1>Make the next move legible.</h1>
+          <h1>Read your resume. Find the work.</h1>
           <p>
-            Upload a resume, review the structured read, and keep your private profile under your
-            control.
+            Upload a private PDF, inspect the extracted claims, and approve a version before it
+            shapes matches.
           </p>
         </div>
-        <p className="page-count">
-          {resumes?.length ?? 0} resume{resumes?.length === 1 ? "" : "s"}
-        </p>
+        <div className="page-intro-actions">
+          <Link href="/dashboard/matches" className="button-primary">
+            Open Match Feed
+          </Link>
+          <Link href="/dashboard/jobs" className="button-secondary">
+            Browse Jobs
+          </Link>
+        </div>
       </div>
 
-      {!account?.onboarding_completed_at ? (
+      {!account.onboarding_completed_at ? (
         <OnboardingPanel hasResume={Boolean(resumes?.length)} />
       ) : null}
-
-      <div className="workspace-actions">
-        <Link href="/dashboard/jobs" className="button-primary">
-          Browse Jobs
-        </Link>
-        <Link href="/dashboard/matches" className="button-secondary">
-          Match My Resume
-        </Link>
-        <p>Normalized listings from documented sources.</p>
-      </div>
 
       <div className="workspace-grid">
         <ResumeUploadCard />
 
-        <section className="workspace-history" aria-labelledby="resume-history-title">
-          <div>
-            <p className="eyebrow">Private history</p>
-            <h2 id="resume-history-title">Your scans</h2>
+        <section className="resume-history-panel" aria-labelledby="resume-history-title">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="eyebrow">Document history</p>
+              <h2 id="resume-history-title">Resume scans</h2>
+            </div>
+            <span className="page-count">{resumes?.length ?? 0} scans</span>
           </div>
+
           {resumes?.length ? (
-            <div className="history-list">
+            <div className="mt-6 grid gap-3">
               {resumes.map((resume) => (
                 <Link
                   key={resume.id}
                   href={`/dashboard/resumes/${resume.id}`}
-                  className="resume-history-row"
+                  className="resume-history-row group"
                 >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-[var(--foreground)]">
-                      {resume.original_filename}
-                    </p>
-                    <p className="mt-1 text-xs text-[var(--muted)]">
-                      {resume.page_count ? `${resume.page_count} pages` : "Page count pending"} ·{" "}
-                      {new Intl.DateTimeFormat("en-IN").format(new Date(resume.created_at))}
+                  <div>
+                    <strong>{resume.original_filename}</strong>
+                    <p className="text-xs text-[var(--muted)]">
+                      {resume.page_count
+                        ? `${resume.page_count} page${resume.page_count === 1 ? "" : "s"}`
+                        : "Page count pending"}{" "}
+                      · stage: {resume.processing_stage.replaceAll("_", " ")}
                     </p>
                     {resume.error_message ? (
                       <p className="mt-2 text-xs text-[var(--danger)]">{resume.error_message}</p>
                     ) : null}
                   </div>
-                  <span
-                    className={`status-pill ${resume.status === "approved" ? "status-pill-success" : ""}`}
-                  >
-                    {resume.status.replaceAll("_", " ")}
-                  </span>
+                  <StatusPill status={resume.status} />
                 </Link>
               ))}
             </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { StatusPill } from "@/components/status-pill";
 import { resumeProfileSchema, type ResumeProfile } from "@/lib/resumes/profile-schema";
 
 type Props = {
@@ -116,9 +117,10 @@ export function ResumeProfileReview({ resumeId, profile, approved, onUpdated }: 
             so you can see where a claim came from.
           </p>
         </div>
-        <span className={approved ? "status-pill status-pill-success" : "status-pill"}>
-          {approved ? "Approved" : "Needs review"}
-        </span>
+        <StatusPill
+          status={approved ? "approved" : "needs_review"}
+          label={approved ? "Approved" : "Needs review"}
+        />
       </div>
 
       <label
@@ -143,12 +145,12 @@ export function ResumeProfileReview({ resumeId, profile, approved, onUpdated }: 
         matches.
       </p>
       {message ? (
-        <p className="mt-4 text-sm text-[#a8e3c0]" role="status">
+        <p className="form-message mt-4" role="status">
           {message}
         </p>
       ) : null}
       {error ? (
-        <p className="mt-4 text-sm text-[#ff9285]" role="alert">
+        <p className="form-error mt-4" role="alert">
           {error}
         </p>
       ) : null}

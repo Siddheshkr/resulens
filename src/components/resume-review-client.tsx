@@ -169,7 +169,7 @@ export function ResumeReviewClient({ initialResume, initialProfile }: Props) {
         resume.status === "delete_failed" ||
         resume.status === "deleting" ? (
           <button
-            className="header-cta mt-6 min-h-11 px-5"
+            className="button-primary mt-6"
             type="button"
             onClick={() => void retry()}
           >
@@ -181,7 +181,7 @@ export function ResumeReviewClient({ initialResume, initialProfile }: Props) {
       </div>
 
       {actionError ? (
-        <p className="mt-4 text-sm text-[#ff9285]" role="alert">
+        <p className="form-error mt-4" role="alert">
           {actionError}
         </p>
       ) : null}

@@ -1,9 +1,21 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { AuthControls } from "@/components/auth-controls";
 import { ResuLensLogo } from "@/components/resulens-logo";
 
+const NAV_LINKS = [
+  { href: "/dashboard", label: "Dashboard", exact: true },
+  { href: "/dashboard/jobs", label: "Jobs", exact: false },
+  { href: "/dashboard/matches", label: "Matches", exact: false },
+  { href: "/dashboard/settings", label: "Settings", exact: false },
+];
+
 export function SiteHeader() {
+  const pathname = usePathname();
+
   return (
     <header className="site-header">
       <div className="site-header-inner">
@@ -12,18 +24,21 @@ export function SiteHeader() {
           <span>ResuLens</span>
         </Link>
         <nav className="site-nav" aria-label="Primary navigation">
-          <Link href="/dashboard" className="site-nav-link">
-            Dashboard
-          </Link>
-          <Link href="/dashboard/jobs" className="site-nav-link">
-            Jobs
-          </Link>
-          <Link href="/dashboard/matches" className="site-nav-link">
-            Matches
-          </Link>
-          <Link href="/dashboard/settings" className="site-nav-link">
-            Settings
-          </Link>
+          {NAV_LINKS.map((link) => {
+            const isActive = link.exact
+              ? pathname === link.href
+              : pathname?.startsWith(link.href);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`site-nav-link ${isActive ? "site-nav-link-active" : ""}`}
+                aria-current={isActive ? "page" : undefined}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
         <div className="site-account">
           <AuthControls />

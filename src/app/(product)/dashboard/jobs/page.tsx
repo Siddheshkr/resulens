@@ -78,7 +78,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
           defaultValue={search}
           placeholder="Try ‘TypeScript’ or ‘product engineer’…"
           autoComplete="off"
-          className="product-input"
+          className="product-input job-search-input"
         />
         <label className="sr-only" htmlFor="job-country">
           Country code
@@ -124,21 +124,36 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
             return (
               <article key={job.id} className="job-card">
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
+                  <div className="min-w-0">
                     <p className="job-source">
                       {companyName ?? "Company not specified"}
                       {sourceName ? ` · via ${sourceName}` : ""}
                     </p>
-                    <h2>{job.title}</h2>
+                    <h2>
+                      <Link
+                        href={`/dashboard/jobs/${job.id}`}
+                        className="transition-colors hover:text-[var(--brand)]"
+                      >
+                        {job.title}
+                      </Link>
+                    </h2>
                   </div>
-                  <a
-                    href={job.canonical_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="button-secondary"
-                  >
-                    View Source
-                  </a>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link
+                      href={`/dashboard/jobs/${job.id}`}
+                      className="button-secondary"
+                    >
+                      Details
+                    </Link>
+                    <a
+                      href={job.canonical_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="button-secondary"
+                    >
+                      View Source
+                    </a>
+                  </div>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2 text-xs text-[var(--muted)]">
                   {job.location_text ? (

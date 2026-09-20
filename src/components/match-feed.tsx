@@ -10,7 +10,12 @@ import {
 } from "@/lib/matching/polling";
 
 type JsonValue =
-  string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue | undefined };
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue | undefined };
 
 type ResumeOption = {
   id: string;
@@ -472,12 +477,12 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
           </span>
         </div>
         {message ? (
-          <p className="mt-4 text-sm text-[#ffad9f]" role="status">
+          <p className="form-message mt-4" role="status">
             {message}
           </p>
         ) : null}
         {error ? (
-          <p className="mt-4 text-sm text-[#ff9285]" role="alert">
+          <p className="form-error mt-4" role="alert">
             {error}
           </p>
         ) : null}
@@ -504,7 +509,7 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
             {run.matches.length ? (
               <button
                 type="button"
-                className="header-link border border-[#8c83ff]/20"
+                className="button-secondary button-sm"
                 onClick={() => explainTopMatches(run.run.id)}
                 disabled={busy || run.run.explanation_status === "processing"}
               >
@@ -522,7 +527,7 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
             </div>
           ) : run.run.status === "failed" ? (
             <div
-              className="mt-5 rounded-2xl border border-[#ff9285]/30 bg-[#ff9285]/[0.06] px-5 py-8 text-sm text-[var(--muted)]"
+              className="mt-5 rounded-2xl border border-[var(--danger)]/30 bg-[var(--danger)]/[0.06] px-5 py-8 text-sm text-[var(--muted)]"
               role="alert"
             >
               {matchFailureMessage(run.run)}
@@ -561,7 +566,7 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
                       {job.description.slice(0, 420)}
                       {job.description.length > 420 ? "…" : ""}
                     </p>
-                    <div className="mt-4 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
+                    <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
                       {scoreSignals(match.score_breakdown).map((signal) => (
                         <div
                           key={signal.name}
@@ -577,15 +582,15 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
                       ))}
                     </div>
                     {unknowns.length || conflicts.length ? (
-                      <div className="mt-4 rounded-xl border border-[#8c83ff]/20 bg-[#8c83ff]/[0.07] px-4 py-3 text-xs leading-6 text-[#c9c5ff]">
+                      <div className="mt-4 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-xs leading-6 text-[var(--muted)]">
                         {conflicts.length ? (
                           <p>
-                            <strong>Confirmed conflicts:</strong> {conflicts.join(" ")}
+                            <strong className="text-[var(--foreground)]">Confirmed conflicts:</strong> {conflicts.join(" ")}
                           </p>
                         ) : null}
                         {unknowns.length ? (
                           <p>
-                            <strong>Still unknown:</strong> {unknowns.join(" ")}
+                            <strong className="text-[var(--foreground)]">Still unknown:</strong> {unknowns.join(" ")}
                           </p>
                         ) : null}
                       </div>
@@ -612,7 +617,7 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
                     <div className="mt-5 flex flex-wrap items-center gap-2">
                       <Link
                         href={`/dashboard/jobs/${job.id}`}
-                        className="header-link border border-white/10"
+                        className="button-secondary button-sm"
                       >
                         Details
                       </Link>
@@ -620,83 +625,88 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
                         href={job.canonical_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="header-link border border-white/10"
+                        className="button-secondary button-sm"
                       >
                         Open source
                       </a>
                       <button
                         type="button"
-                        className={`header-link border border-white/10 ${match.action === "saved" ? "!text-[#ffad9f]" : ""}`}
+                        className={`button-secondary button-sm ${match.action === "saved" ? "button-active" : ""}`}
                         onClick={() => updateAction(job.id, "saved", run.run.id)}
                         disabled={busy}
+                        aria-pressed={match.action === "saved"}
                       >
                         {match.action === "saved" ? "Saved" : "Save"}
                       </button>
                       <button
                         type="button"
-                        className="header-link border border-white/10"
+                        className={`button-secondary button-sm ${match.action === "dismissed" ? "button-active" : ""}`}
                         onClick={() => updateAction(job.id, "dismissed", run.run.id)}
                         disabled={busy}
+                        aria-pressed={match.action === "dismissed"}
                       >
                         {match.action === "dismissed" ? "Dismissed" : "Dismiss"}
                       </button>
                       <button
                         type="button"
-                        className="header-link border border-white/10"
+                        className={`button-secondary button-sm ${match.action === "applied" ? "button-active" : ""}`}
                         onClick={() => updateAction(job.id, "applied", run.run.id)}
                         disabled={busy}
+                        aria-pressed={match.action === "applied"}
                       >
                         {match.action === "applied" ? "Marked applied" : "Mark applied"}
                       </button>
                       {!match.explanation || match.explanation.status === "pending" ? (
                         <button
                           type="button"
-                          className="header-link border border-[#8c83ff]/20"
+                          className="button-secondary button-sm"
                           onClick={() => explain(match.id, run.run.id)}
                           disabled={busy}
                         >
                           Explain
                         </button>
                       ) : null}
-                      <span className="ml-auto flex items-center gap-1 text-xs text-[var(--quiet)]">
+                      <div className="ml-auto flex items-center gap-1">
                         <button
                           type="button"
-                          className="px-2 py-1 hover:text-[var(--foreground)]"
+                          className="button-secondary button-sm"
                           onClick={() => sendFeedback(job.id, "relevant", run.run.id)}
-                          aria-label="Mark this match relevant"
+                          aria-label="Mark this match as useful"
                         >
                           Useful
                         </button>
                         <button
                           type="button"
-                          className="px-2 py-1 hover:text-[var(--foreground)]"
+                          className="button-secondary button-sm"
                           onClick={() => sendFeedback(job.id, "not_relevant", run.run.id)}
-                          aria-label="Mark this match not relevant"
+                          aria-label="Mark this match as not useful"
                         >
                           Not useful
                         </button>
-                      </span>
+                      </div>
                     </div>
                   </article>
                 );
               })}
             </div>
           ) : (
-            <div className="mt-5 rounded-2xl border border-dashed border-white/15 bg-black/20 px-5 py-10 text-sm leading-6 text-[var(--muted)]">
-              No active listing satisfied the current hard constraints. Try widening your country,
-              workplace, or location filters; unknown provider fields are never treated as confirmed
-              eligibility.
+            <div className="empty-state mt-5">
+              <p className="text-base font-bold text-[var(--foreground)]">No eligible matches found</p>
+              <p>
+                No active listing satisfied your current hard constraints. Try widening your country,
+                workplace, or location filters above to explore more opportunities.
+              </p>
             </div>
           )}
         </section>
       ) : (
-        <section className="mt-10 rounded-2xl border border-dashed border-white/15 bg-black/20 px-5 py-10 text-center">
+        <div className="empty-state mt-10">
           <p className="text-lg font-bold text-[var(--foreground)]">Your ranked feed is waiting.</p>
           <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-[var(--muted)]">
-            Start a run after approving a resume. Results are versioned to that approved profile and
-            the preferences shown above.
+            Select an approved resume above and choose Find My Matches to generate ranked opportunities
+            backed by deterministic scores and evidence.
           </p>
-        </section>
+        </div>
       )}
     </div>
   );

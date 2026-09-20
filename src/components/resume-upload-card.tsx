@@ -14,6 +14,7 @@ export function ResumeUploadCard() {
   const [file, setFile] = useState<File | null>(null);
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const supabase = useMemo(() => {
@@ -26,6 +27,20 @@ export function ResumeUploadCard() {
 
     return createBrowserSupabaseClient(() => session?.getToken() ?? Promise.resolve(null));
   }, [session]);
+
+  function handleFileSelection(candidate: File | null | undefined) {
+    if (!candidate) return;
+    if (candidate.type !== "application/pdf" && !candidate.name.toLowerCase().endsWith(".pdf")) {
+      setError("Choose a PDF file.");
+      return;
+    }
+    if (candidate.size > MAX_RESUME_BYTES) {
+      setError("PDF files must be 5 MB or smaller.");
+      return;
+    }
+    setError(null);
+    setFile(candidate);
+  }
 
   async function submitUpload(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -122,16 +137,29 @@ export function ResumeUploadCard() {
         </p>
       </div>
 
-      <label className="file-drop" htmlFor="resume-file">
+      <label
+        className={`file-drop ${isDragging ? "file-drop-active" : ""}`}
+        htmlFor="resume-file"
+        onDragOver={(event) => {
+          event.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={(event) => {
+          event.preventDefault();
+          setIsDragging(false);
+          handleFileSelection(event.dataTransfer.files?.[0]);
+        }}
+      >
         <span className="file-drop-icon" aria-hidden="true">
           PDF
         </span>
         <span className="file-drop-copy">
-          <strong>{file ? file.name : "Choose a resume PDF"}</strong>
+          <strong>{file ? file.name : isDragging ? "Drop your PDF here" : "Choose a resume PDF"}</strong>
           <small>
             {file
               ? `${new Intl.NumberFormat("en-IN").format(file.size)} bytes selected`
-              : "Private upload · 5 pages maximum"}
+              : "Private upload · 5 pages maximum · or drag & drop"}
           </small>
         </span>
         <input
@@ -140,7 +168,7 @@ export function ResumeUploadCard() {
           className="sr-only"
           type="file"
           accept="application/pdf,.pdf"
-          onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+          onChange={(event) => handleFileSelection(event.target.files?.[0])}
           disabled={busy}
         />
       </label>
