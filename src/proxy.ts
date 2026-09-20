@@ -26,6 +26,10 @@ function isProtectedRoute(pathname: string) {
   return isProtectedPageRoute(pathname) || isProtectedApiRoute(pathname);
 }
 
+function isAuthAwarePublicPage(pathname: string) {
+  return pathname === "/";
+}
+
 function hasClerkCredential(request: Request) {
   if (request.headers.get("authorization")) {
     return true;
@@ -63,11 +67,23 @@ const configuredProxy = clerkMiddleware(async (auth, request) => {
 export default function proxy(...args: Parameters<typeof configuredProxy>) {
   const [request] = args;
 
-  if (!isClerkConfigured() || !isProtectedRoute(request.nextUrl.pathname)) {
+  if (!isClerkConfigured()) {
     return NextResponse.next();
   }
 
-  if (isProtectedApiRoute(request.nextUrl.pathname) && !hasClerkCredential(request)) {
+  const pathname = request.nextUrl.pathname;
+  const isProtected = isProtectedRoute(pathname);
+  const shouldHydratePublicAuthState =
+    isAuthAwarePublicPage(pathname) && hasClerkCredential(request);
+
+  // Public pages stay on the no-handshake fast path for anonymous visitors. A
+  // credentialed visitor receives Clerk's request auth state on the landing
+  // page, preventing signed-out CTAs from flashing during session restoration.
+  if (!isProtected && !shouldHydratePublicAuthState) {
+    return NextResponse.next();
+  }
+
+  if (isProtectedApiRoute(pathname) && !hasClerkCredential(request)) {
     return continueAsSignedOutApiRequest(request);
   }
 

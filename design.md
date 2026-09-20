@@ -113,6 +113,10 @@ empty states.
 - **Destructive action:** require confirmation or a recoverable undo period.
 - **Clerk UI:** use the same surface, type, pills, focus blue, and error semantics as
   native ResuLens forms.
+- **Account menu:** use an opaque charcoal surface with a compact profile row,
+  Settings, account security, and sign-out. Keep the menu visually native to the
+  product shell; do not repeat workspace navigation or use a translucent provider
+  popover.
 
 ## Motion and accessibility
 

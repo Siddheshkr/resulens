@@ -18,6 +18,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  // Next's development overlay treats a transient page-focus session-touch
+  // failure as an unhandled error. Keep the default activity touch in
+  // production, but avoid that noisy dev-only request while developing
+  // against a local Clerk instance/network.
+  const touchClerkSession = process.env.NODE_ENV === "production";
 
   const content = (
     <>
@@ -39,6 +44,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             publishableKey={publishableKey}
             signInUrl="/sign-in"
             signUpUrl="/sign-up"
+            touchSession={touchClerkSession}
           >
             {content}
           </ClerkProvider>

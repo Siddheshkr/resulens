@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { LandingActions } from "@/components/landing-actions";
+
 const workflow = [
   {
     step: "Upload",
@@ -19,6 +21,8 @@ const workflow = [
 ] as const;
 
 export default function HomePage() {
+  const clerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+
   return (
     <div className="landing-shell">
       <section className="landing-hero" aria-labelledby="landing-title">
@@ -33,12 +37,18 @@ export default function HomePage() {
             reasons you can inspect.
           </p>
           <div className="hero-actions">
-            <Link href="/sign-up" className="button-primary">
-              Start With Your Resume
-            </Link>
-            <Link href="/sign-in" className="button-secondary">
-              Sign In
-            </Link>
+            {clerkConfigured ? (
+              <LandingActions mode="hero" />
+            ) : (
+              <>
+                <Link href="/sign-up" className="button-primary">
+                  Start With Your Resume
+                </Link>
+                <Link href="/sign-in" className="button-secondary">
+                  Sign In
+                </Link>
+              </>
+            )}
           </div>
           <p className="trust-line">Private upload · Review before matching · Delete any time</p>
         </div>
@@ -125,9 +135,13 @@ export default function HomePage() {
           <p className="signal-label">Designed around applicant privacy</p>
           <h2 id="privacy-title">Your profile stays reviewable. Your score stays explainable.</h2>
         </div>
-        <Link href="/sign-up" className="button-primary">
-          Create Your Private Workspace
-        </Link>
+        {clerkConfigured ? (
+          <LandingActions mode="privacy" />
+        ) : (
+          <Link href="/sign-up" className="button-primary">
+            Create Your Private Workspace
+          </Link>
+        )}
       </section>
     </div>
   );

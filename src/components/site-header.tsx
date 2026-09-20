@@ -10,7 +10,6 @@ const NAV_LINKS = [
   { href: "/dashboard", label: "Dashboard", exact: true },
   { href: "/dashboard/jobs", label: "Jobs", exact: false },
   { href: "/dashboard/matches", label: "Matches", exact: false },
-  { href: "/dashboard/settings", label: "Settings", exact: false },
 ];
 
 export function SiteHeader() {
@@ -25,9 +24,7 @@ export function SiteHeader() {
         </Link>
         <nav className="site-nav" aria-label="Primary navigation">
           {NAV_LINKS.map((link) => {
-            const isActive = link.exact
-              ? pathname === link.href
-              : pathname?.startsWith(link.href);
+            const isActive = link.exact ? pathname === link.href : pathname?.startsWith(link.href);
             return (
               <Link
                 key={link.href}

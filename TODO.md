@@ -1,6 +1,6 @@
 # ResuLens Work Tracker
 
-Last reviewed: 2026-09-16
+Last reviewed: 2026-09-20
 
 This file is the lightweight, repository-level source of truth for planned and completed work. Product and architecture decisions belong in `context.md`; contributor rules belong in `AGENTS.md`; runtime logs belong in the relevant observability system.
 
@@ -89,6 +89,7 @@ Completed task format:
   - Depends on: Clerk CDN/network availability in the affected browser context
   - Verify: a fresh signed-out browser loads the Clerk form without a hosted-bundle error; the existing bounded timeout and Retry fallback remain the safe failure path.
   - Progress (2026-09-16): the fallback is working and the form eventually renders when the Clerk bundle responds, but a fresh Brave context intermittently reports `failed_to_load_clerk_js`. This is an external Clerk delivery/connectivity issue, not a route authorization failure; no credentials were changed.
+  - Progress (2026-09-20): the separate page-focus session-touch failure is contained in local development through Clerk's supported `touchSession` option; a fresh local tab waited 12 seconds without a Clerk touch error. Initial hosted-bundle delivery remains dependent on Clerk/browser connectivity.
 
 - [ ] Run the paid-provider release gate for embeddings and explanations
   - Owner: unassigned
@@ -126,6 +127,18 @@ When adding a blocker, use this form:
 ```
 
 ## Completed
+
+- [x] Contain transient Clerk session-touch failures during local development — 2026-09-20
+  - Evidence: `src/app/layout.tsx` passes `touchSession={false}` outside production and keeps the default Clerk activity touch enabled for production builds.
+  - Verification: Node 24 strict type-check passed; a fresh local Brave tab loaded the public app and remained free of Clerk `sessions/.../touch` errors for 12 seconds. The signed-out auth route remained reachable without the Next.js runtime overlay.
+
+- [x] Keep landing and navigation actions stable while Clerk restores a session — 2026-09-20
+  - Evidence: `LandingActions` and the authenticated navigation use `useAuth({ treatPendingAsSignedOut: false })`; credentialed landing requests receive Clerk auth state through `src/proxy.ts`; auth forms fall back to `/dashboard` after completion.
+
+- [x] Replace the faded Clerk account popover with a native ResuLens account menu — 2026-09-20
+  - Evidence: `src/components/account-menu.tsx` owns the accessible dark menu with Settings, account security, and sign-out actions; the primary navigation no longer duplicates Settings.
+  - Verification: local authenticated browser showed the opaque charcoal menu, confirmed no workspace action is present, navigated Settings successfully, and closed the menu with Escape after arrow-key navigation. Lint and strict type-check passed.
+  - Verification: a signed-in localhost refresh rendered only `Open Your Workspace` and the user menu in the first accessibility snapshot; clicking the CTA opened `/dashboard`; direct `/sign-in` and `/sign-up` returned to `/dashboard`; Node 24 lint, strict type-check, 49 unit tests, production build, and 26 desktop/mobile Playwright checks passed.
 
 - [x] Add the selected ResuLens brand mark to product and authentication navigation — 2026-09-15
   - Evidence: supplied resume/profile/lens artwork is served from `public/brand/resulens-logo.png`; the shared logo component frames the visible glyph so the export canvas does not create a false gap before the wordmark.

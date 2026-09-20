@@ -1,6 +1,6 @@
 # ResuLens — Product and Architecture Context
 
-Last reviewed: 2026-09-16
+Last reviewed: 2026-09-20
 
 ## Product
 
@@ -129,6 +129,9 @@ Version numbers above are the approved starting baseline, not permission to skip
 - Clerk account components use the hosted Clerk UI bundle through `ClerkProvider`; ResuLens keeps its dark appearance in namespaced `appearance.elements` classes and does not ship the vulnerable bundled `@clerk/ui` dependency.
 - Protected API requests with no Clerk credential take a bounded signed-out fast path so they return a safe 401 without a browser handshake; requests carrying a credential continue through Clerk middleware, and the route handler still re-checks `requireUser()`.
 - On 2026-09-16, a fresh signed-out browser context exercised the auth routes. The Clerk form rendered when the hosted bundle responded; intermittent `failed_to_load_clerk_js` delivery produced the intended bounded loading timeout/retry fallback. This is an environment/provider connectivity condition, not an authorization bypass, and no credentials were changed.
+- On 2026-09-20, the Clerk provider disables the optional page-focus `touch` request during local development. This prevents a transient Clerk `sessions/.../touch` network rejection from surfacing as a Next.js development overlay while preserving Clerk's default session activity touch in production. Initial hosted-bundle delivery failures remain an external connectivity condition handled by the bounded auth fallback.
+- On 2026-09-20, the public landing actions and header wait for Clerk's settled auth state (including pending-session restoration) before showing signed-out controls. Credentialed landing requests are hydrated through `proxy.ts`, so an already signed-in visitor receives the workspace CTAs on the first response instead of seeing a sign-in/start-resume flash. Anonymous public pages and public APIs retain their no-handshake fast path.
+- On 2026-09-20, authenticated account actions use a ResuLens-owned dark account menu rather than Clerk's faded `UserButton` popover. The menu keeps the existing charcoal surface system, exposes Settings and Clerk account security, and leaves session ownership/sign-out with Clerk; Settings is intentionally grouped with account controls instead of duplicating the primary navigation.
 
 ### Phase 2 resume intake status
 

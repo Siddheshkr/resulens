@@ -36,7 +36,13 @@ export default function SignInPage() {
         <ClerkDegraded>
           <ClerkDegradedMessage />
         </ClerkDegraded>
-        <SignIn appearance={clerkAppearance} path="/sign-in" routing="path" signUpUrl="/sign-up" />
+        <SignIn
+          appearance={clerkAppearance}
+          fallbackRedirectUrl="/dashboard"
+          path="/sign-in"
+          routing="path"
+          signUpUrl="/sign-up"
+        />
       </ClerkLoaded>
     </AuthShell>
   );
