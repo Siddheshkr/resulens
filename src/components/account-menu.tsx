@@ -3,6 +3,7 @@
 import { useClerk, useUser } from "@clerk/nextjs";
 import { ChevronDown, LogOut, Settings2, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { ThemeOptions } from "@/components/theme-controls";
 import { usePathname } from "next/navigation";
 import {
   useEffect,
@@ -81,7 +82,9 @@ export function AccountMenu() {
   function handleMenuKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (!menuRef.current) return;
 
-    const items = Array.from(menuRef.current.querySelectorAll<HTMLElement>('[role="menuitem"]'));
+    const items = Array.from(
+      menuRef.current.querySelectorAll<HTMLElement>('[role="menuitem"], [role="menuitemradio"]'),
+    );
     const currentIndex = items.indexOf(document.activeElement as HTMLElement);
     let nextIndex: number | null = null;
 
@@ -217,6 +220,9 @@ export function AccountMenu() {
             </button>
           </div>
 
+          <div className="account-menu-divider" role="separator" />
+
+          <ThemeOptions inMenu />
           <div className="account-menu-divider" role="separator" />
 
           <button

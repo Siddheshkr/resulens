@@ -1,6 +1,6 @@
 # ResuLens Interface System
 
-Last reviewed: 2026-09-10
+Last reviewed: 2026-09-20
 
 This document is the visual source of truth for ResuLens. It adapts the supplied
 Framer design analysis to a resume-intelligence product; it is a reference, not
@@ -8,60 +8,69 @@ an instruction to reproduce Framer's brand or layout.
 
 ## Design idea
 
-ResuLens should feel like a precise reading instrument: a quiet black workspace,
+ResuLens should feel like a precise reading instrument: a quiet, focused workspace,
 high-contrast typography, document-like structure, and a small number of vivid
-analysis surfaces. The memorable element is the **lens field**—a violet-to-coral
-panel that frames a resume and its evidence-backed match. Color represents active
-analysis, never general decoration.
+analysis cues. The public page uses transparent, tactile 3D assets to show a
+resume being read, aligned, and kept private without presenting a fabricated
+product screen or placing imagery inside opaque rectangles. Signal blue
+represents active analysis, never general decoration.
 
 The brand mark is a blue resume, profile, and lens glyph. Use the supplied
 transparent artwork in product navigation and authentication entry points; keep it
 small and let the surrounding interface remain monochrome.
 
-The interface is dark-only. It should feel confident and editorial, not like a
-collection of generic SaaS cards.
+The interface supports Light, Dark, and System. System is the default; explicit
+choices persist locally and synchronize between tabs. The account menu contains
+the three appearance options beside Settings and sign-out; visitors can change
+appearance from the header. It should feel confident and editorial, not like a
+collection of generic SaaS cards. Semantic tokens in `src/app/themes.css` are the
+implementation source of truth for both palettes.
 
 ## Tokens
 
 ### Color
 
-| Token          | Value     | Role                                         |
-| -------------- | --------- | -------------------------------------------- |
-| Canvas         | `#090909` | Page and navigation background               |
-| Surface        | `#141414` | Primary cards and controls                   |
-| Surface raised | `#1c1c1c` | Selected and emphasized surfaces             |
-| Ink            | `#ffffff` | Primary text and primary actions             |
-| Muted ink      | `#9b9b9b` | Supporting copy and metadata                 |
-| Hairline       | `#292929` | Borders and document rules                   |
-| Signal blue    | `#0099ff` | Links, focus, selection, and live state only |
-| Violet         | `#6a4cf5` | Lens-field anchor                            |
-| Coral          | `#ff5577` | Lens-field energy and processing state       |
-| Success        | `#45d483` | Confirmed and approved state                 |
-| Danger         | `#ff6b6b` | Destructive and failed state                 |
+| Token          | Light     | Dark      | Role                     |
+| -------------- | --------- | --------- | ------------------------ |
+| Canvas         | `#f8f9fc` | `#090909` | Page background          |
+| Surface        | `#ffffff` | `#141619` | Cards and controls       |
+| Surface raised | `#edf0f5` | `#20242a` | Selected surfaces        |
+| Ink            | `#17212f` | `#f4f6fa` | Primary text and actions |
+| Muted ink      | `#596477` | `#a2abb8` | Supporting copy          |
+| Hairline       | `#dce1e9` | `#2a3038` | Borders                  |
+| Signal blue    | `#0869c6` | `#55adff` | Links, focus, selection  |
+| Success        | `#167346` | `#6cdaa0` | Confirmed state          |
+| Danger         | `#bd303c` | `#ff858b` | Destructive/error state  |
 
 White and black are the anchors. Signal blue is never a broad background or
-primary button fill. Violet and coral appear together only in one analysis panel
-per viewport.
+primary button fill. Violet and coral remain secondary to the blue analysis signal.
 
 ### Type
 
-- Display: `Inter Variable`, system fallback, weight 600. Use tight tracking and
-  compact line height so headlines behave like a poster.
-- Interface and body: `Inter Variable`, system fallback, weight 400–600, with
-  `cv05`, `cv11`, and tabular numerals enabled.
-- Code/data: the system monospace stack, only for structured JSON and identifiers.
-- Display sizes use `clamp()` and stay between 32 and 104 pixels. Body lines stay
-  below roughly 76 characters.
+- Primary UI and headings: `Inter Variable`, then `Inter`, `ui-sans-serif`,
+  `system-ui`, `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `Roboto`, and
+  `sans-serif`. Use weights 300, 400, 510, and 590 where the surface calls for
+  light, regular, medium, or strong emphasis.
+- OpenType features: `cv01`, `ss03`, and `zero` are enabled for the primary UI
+  typeface.
+- Code/data: `Berkeley Mono`, then `JetBrains Mono`, `IBM Plex Mono`, and the
+  system monospace stack, only for structured JSON and technical metadata.
+- Landing titles scale from 44px on mobile to 77px on wide screens; section
+  headings stay between 32px and 50px. Body copy is 16–17px with generous leading.
+  Keep existing font fallbacks; no remote font dependency is required.
 - Use sentence case. Small labels describe useful state; they are not decorative
   all-caps eyebrows.
 
 ### Shape and spacing
 
 - 5px rhythm, expressed through 10, 15, 20, 30, 40, and 100px.
-- Controls and CTAs are pills with at least a 44px touch target.
-- Form fields use 10px corners; product cards use 20px; the lens field uses 30px.
+- Product controls retain pills; landing CTAs use restrained 11px corners. Keep at least a 44px touch target.
+- Form fields use 10px corners; product cards use 20px; landing imagery uses 16px.
 - Default content width is 1200px with 20px mobile and 30px desktop gutters.
 - Elevation comes from surface steps and a fine top edge, not large soft shadows.
+- The sticky navigation is a rounded floating capsule. Its translucent surface
+  gains stronger blur, border definition, and a restrained shadow after scrolling.
+  Preserve the full two-row navigation on narrow screens.
 
 ## Layout
 
@@ -71,14 +80,17 @@ Public landing page:
 ┌────────────────────────────────────────────────────────────┐
 │ ResuLens       Product navigation          Account actions │
 ├────────────────────────────────────────────────────────────┤
-│ Large, left-aligned promise                                │
-│ focused copy + actions                                     │
-│                                                            │
-│                    ┌────── lens field ───────────────────┐ │
-│                    │ resume evidence  →  ranked role     │ │
-│                    └──────────────────────────────────────┘ │
+│ Concise promise + actions │ editorial resume scan visual    │
 ├────────────────────────────────────────────────────────────┤
-│ Upload              Review             Match               │
+│ Private PDF  │ Review first │ Explainable │ Delete anytime │
+├────────────────────────────────────────────────────────────┤
+│ Upload / Review / Discover as three open process columns   │
+├────────────────────────────────────────────────────────────┤
+│ Explainable fit and gaps │ transparent alignment image     │
+├────────────────────────────────────────────────────────────┤
+│ Privacy promise │ transparent private document image      │
+├────────────────────────────────────────────────────────────┤
+│ Practical FAQ │ final invitation │ navigation footer       │
 └────────────────────────────────────────────────────────────┘
 ```
 
@@ -93,14 +105,14 @@ Authenticated workspace:
 └──────────────────────────────┴─────────────────────────────┘
 ```
 
-Use a single column below 810px. Keep all essential navigation visible without
+Use a single landing column below 768px. Keep all essential navigation visible without
 requiring a hover interaction. Align product copy left; center only deliberate
 empty states.
 
 ## Component rules
 
-- **Primary button:** white pill, black label. It names the exact action.
-- **Secondary button:** charcoal pill, white label. No outlined ghost-button grid.
+- **Primary button:** foreground fill, canvas-colored label, inverted with the theme. It names the exact action.
+- **Secondary button:** raised surface with foreground label. No outlined ghost-button grid.
 - **Text link:** signal blue for inline navigation; neutral text in top navigation.
 - **Input:** surface background, hairline edge, blue `:focus-visible` ring, explicit
   label, name, autocomplete intent, and useful error adjacent to the field.
@@ -113,21 +125,26 @@ empty states.
 - **Destructive action:** require confirmation or a recoverable undo period.
 - **Clerk UI:** use the same surface, type, pills, focus blue, and error semantics as
   native ResuLens forms.
-- **Account menu:** use an opaque charcoal surface with a compact profile row,
-  Settings, account security, and sign-out. Keep the menu visually native to the
+- **Account menu:** use an opaque theme-aware surface with a compact profile row,
+  Settings, account security, Light/Dark/System appearance, and sign-out. Keep the menu visually native to the
   product shell; do not repeat workspace navigation or use a translucent provider
   popover.
 
 ## Motion and accessibility
 
-- One short lens-field reveal may run on page load. Interaction feedback may use
-  transforms and opacity only.
+- The landing hero uses one staged text entrance and one image entrance. Lower
+  sections remain immediately readable without scroll-reveal choreography.
+- Route continuity stays at 200ms. High-frequency hover, focus, and press feedback
+  stays at 120ms or less, with button press scale fixed at `0.96`.
+- Interaction motion uses transforms and opacity. State changes always retain a
+  static text, icon, color, or focus cue.
 - Do not use `transition: all`. Respect `prefers-reduced-motion` globally.
 - Keep a visible skip link and logical heading hierarchy.
 - Icon-only controls need accessible names; decorative icons are hidden from
   assistive technology.
 - Maintain visible keyboard focus and 44px touch targets.
-- Set `color-scheme: dark` and a canvas-matching browser theme color.
+- Resolve `color-scheme` and browser theme color from the active palette. Restore
+  saved appearance before paint and react to device changes while in System mode.
 - Loading, success, and error changes use text and appropriate live regions.
 
 ## Content voice
@@ -139,9 +156,9 @@ and failure states should always tell the user what to do next.
 ## Review checklist
 
 - Does the page have one clear primary task?
-- Is the lens field the only atmospheric color surface in its viewport?
+- Does each landing image communicate a distinct product idea without imitating a dashboard?
 - Do surface levels communicate hierarchy without excessive borders or shadows?
 - Are controls keyboard accessible, labelled, and at least 44px tall?
 - Do mobile layouts keep the primary action and navigation reachable?
 - Are long filenames, job titles, and provider content safely constrained?
-- Are animation, focus, dark controls, empty states, and destructive actions safe?
+- Are animation, focus, both palettes, empty states, and destructive actions safe?

@@ -5,15 +5,20 @@ test("the public landing page renders", async ({ page }) => {
 
   await expect(page).toHaveTitle(/ResuLens/);
   await expect(
-    page.getByRole("heading", { name: /Your experience already knows where it belongs/i }),
+    page.getByRole("heading", { name: /Find work that fits your experience/i }),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: /Start with your resume/i })).toHaveAttribute(
-    "href",
-    "/sign-up",
-  );
+  await expect(page.getByAltText(/resume evidence passing through a lens/i)).toBeVisible();
+  await expect(page.getByAltText(/resume evidence aligned with a job brief/i)).toBeVisible();
+  await expect(
+    page.getByAltText(/resume held inside a matte black archival sleeve/i),
+  ).toBeVisible();
+  await expect(
+    page.locator(".hero-actions").getByRole("link", { name: /Start with your resume/i }),
+  ).toHaveAttribute("href", "/sign-up");
 });
 
 test("the Clerk sign-in form is visible", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/sign-in");
 
   const formHeading = page.getByRole("heading", { name: /sign in to resulens/i });
@@ -23,12 +28,12 @@ test("the Clerk sign-in form is visible", async ({ page }) => {
 
   if (await formHeading.isVisible()) {
     await expect(page.getByRole("textbox", { name: /email/i })).toBeVisible();
-    await expect(page.locator("html")).toHaveCSS("color-scheme", "dark");
+    await expect(page.locator("html")).toHaveCSS("color-scheme", "light");
     await expect(page.locator(".cl-formButtonPrimary")).toHaveCSS(
       "background-color",
-      "rgb(255, 255, 255)",
+      "rgb(23, 33, 47)",
     );
-    await expect(page.locator(".cl-card")).toHaveCSS("background-color", "rgb(20, 20, 20)");
+    await expect(page.locator(".cl-card")).toHaveCSS("background-color", "rgb(255, 255, 255)");
   }
 });
 

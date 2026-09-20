@@ -1,15 +1,15 @@
 export const clerkAppearance = {
   variables: {
-    colorPrimary: "#ffffff",
-    colorText: "#ffffff",
-    colorTextSecondary: "#9b9b9b",
-    colorBackground: "#141414",
-    colorInputBackground: "#0d0d0d",
-    colorInputText: "#ffffff",
-    colorNeutral: "#292929",
+    colorPrimary: "var(--foreground)",
+    colorText: "var(--foreground)",
+    colorTextSecondary: "var(--muted)",
+    colorBackground: "var(--card)",
+    colorInputBackground: "var(--input-background)",
+    colorInputText: "var(--foreground)",
+    colorNeutral: "var(--foreground)",
     borderRadius: "1.25rem",
     fontFamily:
-      '"Inter Variable", Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      '"Inter Variable", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   },
   elements: {
     rootBox: "resulens-clerk-root",

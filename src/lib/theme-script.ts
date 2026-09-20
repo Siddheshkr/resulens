@@ -1,0 +1,2 @@
+// Static, application-owned code only. Runs before paint to avoid a theme flash.
+export const themeScript = `(function(){var p='system';try{var s=localStorage.getItem('resulens-theme');if(s==='light'||s==='dark')p=s;}catch(e){}var t=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=t;document.documentElement.dataset.themePreference=p;})()`;

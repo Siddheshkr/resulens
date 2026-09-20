@@ -23,7 +23,7 @@ export function LandingActions({ mode }: Readonly<{ mode: LandingActionMode }>) 
   if (isSignedIn) {
     return (
       <Link href="/dashboard" className="button-primary">
-        {mode === "hero" ? "Open Your Workspace" : "Open Your Private Workspace"}
+        Open Your Workspace
       </Link>
     );
   }
@@ -31,7 +31,7 @@ export function LandingActions({ mode }: Readonly<{ mode: LandingActionMode }>) 
   if (mode === "privacy") {
     return (
       <Link href="/sign-up" className="button-primary">
-        Create Your Private Workspace
+        Start With Your Resume
       </Link>
     );
   }
@@ -41,8 +41,8 @@ export function LandingActions({ mode }: Readonly<{ mode: LandingActionMode }>) 
       <Link href="/sign-up" className="button-primary">
         Start With Your Resume
       </Link>
-      <Link href="/sign-in" className="button-secondary">
-        Sign In
+      <Link href="#workflow-title" className="button-secondary">
+        See how it works
       </Link>
     </>
   );

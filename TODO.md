@@ -128,6 +128,20 @@ When adding a blocker, use this form:
 
 ## Completed
 
+- [x] Refresh the landing narrative and introduce Light, Dark, and System appearance across the app — 2026-09-20
+  - Evidence: responsive hero, workflow, explainable-fit, privacy, FAQ, and final invitation; reused transparent PNG assets; semantic light/dark tokens across shared product and Clerk surfaces; pre-paint preference restoration; live system and cross-tab synchronization; appearance alongside Settings/sign-out and a visitor header control.
+  - Verification: lint, strict TypeScript, 50 unit/component tests, 30 desktop/mobile public and appearance browser checks, and production build passed. Desktop/mobile palettes visually inspected. Account-menu placement and keyboard selection use a mocked-Clerk component test; authenticated data workflows were not rerun for this visual change.
+  - Formatting: changed files pass Prettier; the repository-wide check still flags four untouched files (`dashboard/jobs/page.tsx`, `resume-review-client.tsx`, `resume-upload-card.tsx`, and `status-pill.tsx`).
+  - Navigation polish: the sticky header is now a rounded glass capsule with palette-aware transparency and a stronger blur, border, and shadow after scrolling. Desktop and two-row mobile navigation retain every existing destination and account action; lint, strict TypeScript, the focused component test, and 30 desktop/mobile browser checks pass.
+
+- [x] Recompose the complete public landing page with an editorial, image-led system - 2026-09-20
+  - Evidence: the public page now uses three purpose-built visual assets, an asymmetric hero, a compact principle rail, a row-based process narrative, an evidence-led product section, and a privacy close while preserving every route, navigation label, and Clerk-aware conversion path.
+  - Verification: changed-file formatting, lint, strict TypeScript, 49 Vitest tests, production build, and 26 desktop/mobile Playwright checks pass. Live desktop review at 1280x720 confirmed a two-line hero, visible initial actions, consistent image treatment, and a coherent privacy close.
+
+- [x] Add a resume-scanning landing hero and restrained app-wide motion — 2026-09-20
+  - Evidence: the landing hero now pairs the existing promise with a responsive synthetic resume-to-match scanner; Motion provides reduced-motion-aware hero, section, and route transitions; shared controls and key product surfaces have consistent hover, focus, and press feedback; mobile navigation keeps every destination visible.
+  - Verification: changed-file formatting, lint, strict TypeScript, 49 Vitest tests, production build, npm production audit, and 26 desktop/mobile Playwright checks pass. Browser QA at 375×812 and 1200×713 confirmed no horizontal overflow, a visible initial CTA, static reduced-motion rendering, and preserved protected-route redirects.
+
 - [x] Contain transient Clerk session-touch failures during local development — 2026-09-20
   - Evidence: `src/app/layout.tsx` passes `touchSession={false}` outside production and keeps the default Clerk activity touch enabled for production builds.
   - Verification: Node 24 strict type-check passed; a fresh local Brave tab loaded the public app and remained free of Clerk `sessions/.../touch` errors for 12 seconds. The signed-out auth route remained reachable without the Next.js runtime overlay.

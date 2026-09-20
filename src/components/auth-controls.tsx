@@ -5,10 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { AccountMenu } from "@/components/account-menu";
+import { VisitorThemeMenu } from "@/components/theme-controls";
 
 export function AuthControls() {
   if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
-    return <span className="setup-badge">Clerk setup required</span>;
+    return <VisitorThemeMenu />;
   }
 
   return <ConfiguredAuthControls />;
@@ -33,6 +34,7 @@ function ConfiguredAuthControls() {
     <div className="flex items-center gap-3">
       {!isSignedIn && (
         <>
+          <VisitorThemeMenu />
           {!isSignIn && (
             <Link href="/sign-in" className="header-link">
               Sign in

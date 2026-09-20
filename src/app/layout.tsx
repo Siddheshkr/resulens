@@ -1,10 +1,14 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata, Viewport } from "next";
 
+import { AppMotion } from "@/components/app-motion";
 import { SiteHeader } from "@/components/site-header";
+import { ThemeSync } from "@/components/theme-controls";
+import { themeScript } from "@/lib/theme-script";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 
 import "./globals.css";
+import "./themes.css";
 
 export const metadata: Metadata = {
   title: "ResuLens — Read your resume. Find the work.",
@@ -12,8 +16,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  colorScheme: "dark",
-  themeColor: "#090909",
+  colorScheme: "light dark",
+  themeColor: "#f8f9fc",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -26,16 +30,22 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 
   const content = (
     <>
+      <ThemeSync />
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
       <SiteHeader />
-      <main id="main-content">{children}</main>
+      <main id="main-content">
+        <AppMotion>{children}</AppMotion>
+      </main>
     </>
   );
 
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         {publishableKey ? (
           <ClerkProvider

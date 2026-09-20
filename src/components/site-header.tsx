@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { AuthControls } from "@/components/auth-controls";
 import { ResuLensLogo } from "@/components/resulens-logo";
@@ -14,9 +15,17 @@ const NAV_LINKS = [
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const updateScrollState = () => setIsScrolled(window.scrollY > 12);
+    updateScrollState();
+    window.addEventListener("scroll", updateScrollState, { passive: true });
+    return () => window.removeEventListener("scroll", updateScrollState);
+  }, []);
 
   return (
-    <header className="site-header">
+    <header className="site-header" data-scrolled={isScrolled || undefined}>
       <div className="site-header-inner">
         <Link href="/" className="site-brand" aria-label="ResuLens home" translate="no">
           <ResuLensLogo priority />

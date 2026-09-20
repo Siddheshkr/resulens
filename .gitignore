@@ -14,3 +14,4 @@ dist/
 supabase/.branches/
 supabase/.temp/
 supabase/.env
+.agents/skills/design-taste-frontend/SKILL.md

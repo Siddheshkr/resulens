@@ -10,12 +10,7 @@ import {
 } from "@/lib/matching/polling";
 
 type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonValue[]
-  | { [key: string]: JsonValue | undefined };
+  string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue | undefined };
 
 type ResumeOption = {
   id: string;
@@ -519,7 +514,7 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
           </div>
           {run.run.status === "embedding_pending" ? (
             <div
-              className="mt-5 rounded-2xl border border-dashed border-white/15 bg-black/20 px-5 py-8 text-sm text-[var(--muted)]"
+              className="mt-5 rounded-2xl border border-dashed border-[var(--border)] bg-[var(--input-background)] px-5 py-8 text-sm text-[var(--muted)]"
               role="status"
             >
               Your approved profile is being converted into a private matching signal. This page
@@ -570,7 +565,7 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
                       {scoreSignals(match.score_breakdown).map((signal) => (
                         <div
                           key={signal.name}
-                          className="rounded-xl border border-white/10 bg-black/20 px-3 py-2"
+                          className="rounded-xl border border-[var(--border)] bg-[var(--input-background)] px-3 py-2"
                         >
                           <p className="text-[0.62rem] font-bold uppercase tracking-[0.1em] text-[var(--quiet)]">
                             {signalLabels[signal.name] ?? signal.name}
@@ -582,21 +577,25 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
                       ))}
                     </div>
                     {unknowns.length || conflicts.length ? (
-                      <div className="mt-4 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-xs leading-6 text-[var(--muted)]">
+                      <div className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--input-background)] px-4 py-3 text-xs leading-6 text-[var(--muted)]">
                         {conflicts.length ? (
                           <p>
-                            <strong className="text-[var(--foreground)]">Confirmed conflicts:</strong> {conflicts.join(" ")}
+                            <strong className="text-[var(--foreground)]">
+                              Confirmed conflicts:
+                            </strong>{" "}
+                            {conflicts.join(" ")}
                           </p>
                         ) : null}
                         {unknowns.length ? (
                           <p>
-                            <strong className="text-[var(--foreground)]">Still unknown:</strong> {unknowns.join(" ")}
+                            <strong className="text-[var(--foreground)]">Still unknown:</strong>{" "}
+                            {unknowns.join(" ")}
                           </p>
                         ) : null}
                       </div>
                     ) : null}
                     {match.explanation?.status === "succeeded" && match.explanation.explanation ? (
-                      <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 text-sm leading-6 text-[var(--muted)]">
+                      <div className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--card-strong)] px-4 py-4 text-sm leading-6 text-[var(--muted)]">
                         <p className="font-bold text-[var(--foreground)]">Grounded read</p>
                         {(() => {
                           const explanation = asRecord(match.explanation.explanation);
@@ -691,10 +690,12 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
             </div>
           ) : (
             <div className="empty-state mt-5">
-              <p className="text-base font-bold text-[var(--foreground)]">No eligible matches found</p>
+              <p className="text-base font-bold text-[var(--foreground)]">
+                No eligible matches found
+              </p>
               <p>
-                No active listing satisfied your current hard constraints. Try widening your country,
-                workplace, or location filters above to explore more opportunities.
+                No active listing satisfied your current hard constraints. Try widening your
+                country, workplace, or location filters above to explore more opportunities.
               </p>
             </div>
           )}
@@ -703,8 +704,8 @@ export function MatchFeed({ resumes, initialPreferences, initialRun }: Props) {
         <div className="empty-state mt-10">
           <p className="text-lg font-bold text-[var(--foreground)]">Your ranked feed is waiting.</p>
           <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-[var(--muted)]">
-            Select an approved resume above and choose Find My Matches to generate ranked opportunities
-            backed by deterministic scores and evidence.
+            Select an approved resume above and choose Find My Matches to generate ranked
+            opportunities backed by deterministic scores and evidence.
           </p>
         </div>
       )}
