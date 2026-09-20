@@ -15,9 +15,10 @@ resume being read, aligned, and kept private without presenting a fabricated
 product screen or placing imagery inside opaque rectangles. Signal blue
 represents active analysis, never general decoration.
 
-The brand mark is a blue resume, profile, and lens glyph. Use the supplied
-transparent artwork in product navigation and authentication entry points; keep it
-small and let the surrounding interface remain monochrome.
+The brand mark is a dimensional ivory “R” with a restrained lens detail inside a
+signal-blue rounded tile. Use the transparent PNG in product navigation,
+authentication, footer, and browser icon surfaces; keep it compact and pair it
+with the ResuLens wordmark where space allows.
 
 The interface supports Light, Dark, and System. System is the default; explicit
 choices persist locally and synchronize between tabs. The account menu contains
@@ -71,6 +72,8 @@ primary button fill. Violet and coral remain secondary to the blue analysis sign
 - The sticky navigation is a rounded floating capsule. Its translucent surface
   gains stronger blur, border definition, and a restrained shadow after scrolling.
   Preserve the full two-row navigation on narrow screens.
+- The page scrollbar uses a slim rounded thumb with no visible track. It follows
+  the active palette and becomes clearer on hover without using the brand accent.
 
 ## Layout
 
@@ -132,8 +135,9 @@ empty states.
 
 ## Motion and accessibility
 
-- The landing hero uses one staged text entrance and one image entrance. Lower
-  sections remain immediately readable without scroll-reveal choreography.
+- The landing hero uses one staged text entrance and one image entrance. Each
+  major lower section may reveal once as a single composed block; do not animate
+  every card, line, or decorative detail independently.
 - Route continuity stays at 200ms. High-frequency hover, focus, and press feedback
   stays at 120ms or less, with button press scale fixed at `0.96`.
 - Interaction motion uses transforms and opacity. State changes always retain a

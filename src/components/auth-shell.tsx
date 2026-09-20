@@ -1,7 +1,3 @@
-import Link from "next/link";
-
-import { ResuLensLogo } from "@/components/resulens-logo";
-
 export {
   AuthLoadingState,
   ClerkDegradedMessage,
@@ -19,14 +15,11 @@ export function AuthShell({ children, eyebrow, description }: AuthShellProps) {
     <div className="auth-page">
       <div className="auth-shell">
         <section className="auth-story" aria-label="ResuLens authentication">
-          <Link href="/" className="auth-story-mark" aria-label="Back to ResuLens home">
-            <ResuLensLogo priority />
-            <span>ResuLens</span>
-          </Link>
-
           <div className="auth-story-copy">
             <p className="eyebrow">{eyebrow}</p>
-            <p className="auth-story-title">A clearer read on your next move.</p>
+            <p className="auth-story-title">
+              A clearer read on <span className="marker-underline">your next move</span>.
+            </p>
             <p className="auth-story-description">{description}</p>
           </div>
 

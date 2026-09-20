@@ -8,11 +8,11 @@ export function ResuLensLogo({ priority = false }: ResuLensLogoProps) {
   return (
     <span className="brand-logo-frame" aria-hidden="true">
       <Image
-        src="/brand/resulens-logo.png"
+        src="/brand/resulens-app-icon.png"
         alt=""
         className="brand-logo"
-        width={1323}
-        height={1189}
+        width={1254}
+        height={1254}
         priority={priority}
       />
     </span>

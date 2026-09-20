@@ -17,6 +17,8 @@
   --danger: #bd303c;
   --coral: #b93559;
   --action-hover: #33445c;
+  --scrollbar-thumb: rgb(89 100 119 / 38%);
+  --scrollbar-thumb-hover: rgb(89 100 119 / 62%);
   --header-background: rgb(255 255 255 / 42%);
   --header-background-scrolled: rgb(255 255 255 / 62%);
   --header-border: rgb(23 33 47 / 10%);
@@ -45,6 +47,8 @@
   --danger: #ff858b;
   --coral: #ff8ca7;
   --action-hover: #d8e1ec;
+  --scrollbar-thumb: rgb(162 171 184 / 32%);
+  --scrollbar-thumb-hover: rgb(162 171 184 / 54%);
   --header-background: rgb(18 20 23 / 42%);
   --header-background-scrolled: rgb(18 20 23 / 62%);
   --header-border: rgb(255 255 255 / 10%);
@@ -74,6 +78,8 @@
     --danger: #ff858b;
     --coral: #ff8ca7;
     --action-hover: #d8e1ec;
+    --scrollbar-thumb: rgb(162 171 184 / 32%);
+    --scrollbar-thumb-hover: rgb(162 171 184 / 54%);
     --header-background: rgb(18 20 23 / 42%);
     --header-background-scrolled: rgb(18 20 23 / 62%);
     --header-border: rgb(255 255 255 / 10%);

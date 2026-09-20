@@ -13,6 +13,10 @@ import "./themes.css";
 export const metadata: Metadata = {
   title: "ResuLens — Read your resume. Find the work.",
   description: "Turn your resume into a focused, explainable job search.",
+  icons: {
+    icon: "/brand/resulens-app-icon.png",
+    apple: "/brand/resulens-app-icon.png",
+  },
 };
 
 export const viewport: Viewport = {

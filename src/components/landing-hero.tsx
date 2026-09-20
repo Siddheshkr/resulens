@@ -38,7 +38,7 @@ export function LandingHero({ clerkConfigured }: Readonly<{ clerkConfigured: boo
           A job search built around you
         </motion.p>
         <motion.h1 id="landing-title" variants={shouldReduceMotion ? undefined : item}>
-          Find work that fits your experience.
+          Find work that fits <span className="marker-underline">your experience</span>.
         </motion.h1>
         <motion.p className="hero-lede" variants={shouldReduceMotion ? undefined : item}>
           Start with your resume. Build a profile you trust. Discover relevant roles with clear

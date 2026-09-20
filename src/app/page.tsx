@@ -4,6 +4,7 @@ import { Check, FileUp, ListChecks, Search, ShieldCheck } from "lucide-react";
 
 import { LandingActions } from "@/components/landing-actions";
 import { LandingHero } from "@/components/landing-hero";
+import { MotionReveal } from "@/components/motion-reveal";
 import { ResuLensLogo } from "@/components/resulens-logo";
 import "./landing.css";
 
@@ -68,7 +69,7 @@ export default function HomePage() {
         </span>
       </div>
 
-      <section className="landing-workflow" aria-labelledby="workflow-title">
+      <MotionReveal className="landing-workflow" labelledBy="workflow-title">
         <div className="landing-heading">
           <h2 id="workflow-title">Your next move starts with what you know.</h2>
           <p>Less time repeating your experience. More time considering the right opportunities.</p>
@@ -84,9 +85,9 @@ export default function HomePage() {
             </li>
           ))}
         </ol>
-      </section>
+      </MotionReveal>
 
-      <section className="landing-evidence" aria-labelledby="evidence-title">
+      <MotionReveal className="landing-evidence" labelledBy="evidence-title">
         <div className="evidence-copy">
           <p className="section-caption">Understand the fit</p>
           <h2 id="evidence-title">A reason to look closer.</h2>
@@ -122,9 +123,9 @@ export default function HomePage() {
           />
           <figcaption>Your experience, connected to the requirements.</figcaption>
         </figure>
-      </section>
+      </MotionReveal>
 
-      <section className="landing-privacy" aria-labelledby="privacy-title">
+      <MotionReveal className="landing-privacy" labelledBy="privacy-title">
         <div className="privacy-copy">
           <ShieldCheck size={26} strokeWidth={1.5} aria-hidden="true" />
           <h2 id="privacy-title">Your resume. Your say.</h2>
@@ -144,9 +145,9 @@ export default function HomePage() {
           height={1254}
           sizes="(max-width: 767px) 70vw, 28vw"
         />
-      </section>
+      </MotionReveal>
 
-      <section className="landing-faq" aria-labelledby="faq-title">
+      <MotionReveal className="landing-faq" labelledBy="faq-title">
         <h2 id="faq-title">A few things worth knowing.</h2>
         <div>
           {questions.map(({ question, answer }) => (
@@ -159,9 +160,9 @@ export default function HomePage() {
             </details>
           ))}
         </div>
-      </section>
+      </MotionReveal>
 
-      <section className="landing-close" aria-labelledby="start-title">
+      <MotionReveal className="landing-close" labelledBy="start-title">
         <h2 id="start-title">Put your experience to work.</h2>
         <p>Your next opportunity could start with the resume you already have.</p>
         {clerkConfigured ? (
@@ -171,7 +172,7 @@ export default function HomePage() {
             Start With Your Resume
           </Link>
         )}
-      </section>
+      </MotionReveal>
 
       <footer className="landing-footer">
         <Link href="/" className="site-brand" aria-label="ResuLens home">

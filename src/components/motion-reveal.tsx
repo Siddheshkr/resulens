@@ -15,11 +15,11 @@ export function MotionReveal({ children, className, labelledBy }: MotionRevealPr
     <motion.section
       className={className}
       aria-labelledby={labelledBy}
-      initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.18 }}
+      viewport={{ once: true, amount: 0.16, margin: "0px 0px -8% 0px" }}
       transition={
-        shouldReduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const }
+        shouldReduceMotion ? { duration: 0 } : { duration: 0.58, ease: [0.16, 1, 0.3, 1] as const }
       }
     >
       {children}

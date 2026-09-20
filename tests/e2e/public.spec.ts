@@ -44,6 +44,12 @@ test("the Clerk sign-up form is visible", async ({ page }) => {
   const setupHeading = page.getByRole("heading", { name: /clerk is not connected yet/i });
 
   await expect(formHeading.or(setupHeading)).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator(".auth-story-mark")).toHaveCount(0);
+  const underline = page.locator(".auth-story .marker-underline");
+  await expect(underline).toHaveText("your next move");
+  await expect
+    .poll(() => underline.evaluate((element) => getComputedStyle(element).backgroundSize))
+    .toBe("100% 100%");
 
   if (await formHeading.isVisible()) {
     await expect(page.getByRole("textbox", { name: /email/i })).toBeVisible();
