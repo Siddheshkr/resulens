@@ -24,9 +24,14 @@ export function SiteHeader() {
     return () => window.removeEventListener("scroll", updateScrollState);
   }, []);
 
+  const backdropFilter = isScrolled ? "blur(36px) saturate(175%)" : "blur(24px) saturate(155%)";
+
   return (
     <header className="site-header" data-scrolled={isScrolled || undefined}>
-      <div className="site-header-inner">
+      <div
+        className="site-header-inner"
+        style={{ backdropFilter, WebkitBackdropFilter: backdropFilter }}
+      >
         <Link href="/" className="site-brand" aria-label="ResuLens home" translate="no">
           <ResuLensLogo priority />
           <span>ResuLens</span>

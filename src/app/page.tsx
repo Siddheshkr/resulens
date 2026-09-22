@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Check, FileUp, ListChecks, Search, ShieldCheck } from "lucide-react";
+import { Check, FileUp, ListChecks, MessageSquareText, Search, ShieldCheck } from "lucide-react";
 
 import { LandingActions } from "@/components/landing-actions";
 import { LandingHero } from "@/components/landing-hero";
@@ -65,7 +65,7 @@ export default function HomePage() {
           <Check size={17} aria-hidden="true" /> You approve the profile
         </span>
         <span>
-          <Check size={17} aria-hidden="true" /> Every match has a reason
+          <MessageSquareText size={18} aria-hidden="true" /> Every match has a reason
         </span>
       </div>
 
