@@ -208,10 +208,11 @@ button {
   gap: 1rem;
   border: 1px solid var(--header-border);
   border-radius: 1.4rem;
-  background: var(--header-background);
+  background: var(--header-sheen), var(--header-background);
+  background-color: var(--header-background);
   box-shadow: var(--header-shadow-rest);
-  backdrop-filter: blur(14px) saturate(125%);
-  -webkit-backdrop-filter: blur(14px) saturate(125%);
+  backdrop-filter: blur(24px) saturate(155%);
+  -webkit-backdrop-filter: blur(24px) saturate(155%);
   pointer-events: auto;
   transition:
     background-color 180ms var(--ease-out),
@@ -221,11 +222,22 @@ button {
 }
 
 .site-header[data-scrolled] .site-header-inner {
-  background: var(--header-background-scrolled);
+  background: var(--header-sheen), var(--header-background-scrolled);
   border-color: var(--header-border-scrolled);
   box-shadow: var(--header-shadow-scrolled);
-  backdrop-filter: blur(24px) saturate(145%);
-  -webkit-backdrop-filter: blur(24px) saturate(145%);
+  backdrop-filter: blur(36px) saturate(175%);
+  -webkit-backdrop-filter: blur(36px) saturate(175%);
+}
+
+/* Some hosted/browser combinations expose backdrop-filter but render it less
+   consistently than local Chromium. The stronger fill above remains the
+   visual baseline, while this fallback keeps the header readable without blur. */
+@supports not ((backdrop-filter: blur(1px))) {
+  .site-header-inner,
+  .site-header[data-scrolled] .site-header-inner {
+    background: var(--card);
+    background-color: var(--card);
+  }
 }
 
 .site-brand {
