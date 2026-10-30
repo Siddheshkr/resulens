@@ -9,7 +9,6 @@ import type {
 
 import {
   DEFAULT_RESUME_MODEL,
-  ESCALATION_RESUME_MODEL,
   PROFILE_PROMPT_VERSION,
   PROFILE_SCHEMA_VERSION,
 } from "@/lib/resumes/constants";
@@ -20,6 +19,11 @@ const EXTRACTION_INSTRUCTIONS = `You extract a candidate profile from a resume. 
 
 export const resumeProfilePromptVersion = PROFILE_PROMPT_VERSION;
 export const resumeProfileSchemaVersion = PROFILE_SCHEMA_VERSION;
+
+/** One bounded model handles both text extraction and the vision fallback. */
+export function getResumeModel() {
+  return process.env.OPENAI_RESUME_MODEL || DEFAULT_RESUME_MODEL;
+}
 
 type ExtractResumeProfileInput = {
   pages: string[];
@@ -54,9 +58,7 @@ function pageContext(pages: string[]) {
 export async function extractResumeProfile(
   input: ExtractResumeProfileInput,
 ): Promise<ResumeProfileResult> {
-  const model = input.useVision
-    ? process.env.OPENAI_RESUME_ESCALATION_MODEL || ESCALATION_RESUME_MODEL
-    : process.env.OPENAI_RESUME_MODEL || DEFAULT_RESUME_MODEL;
+  const model = getResumeModel();
   const client = getOpenAiClient();
 
   const userContent: string | ResponseInputMessageContentList = input.useVision

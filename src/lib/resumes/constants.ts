@@ -6,8 +6,7 @@ export const MAX_PROCESSING_ATTEMPTS = 3;
 export const MIN_EXTRACTED_TEXT_CHARACTERS = 120;
 export const PROFILE_SCHEMA_VERSION = "1.0";
 export const PROFILE_PROMPT_VERSION = "resume-profile-2026-09-09";
-export const DEFAULT_RESUME_MODEL = "gpt-5.6-luna";
-export const ESCALATION_RESUME_MODEL = "gpt-5.6-terra";
+export const DEFAULT_RESUME_MODEL = "gpt-6-luna";
 
 export const RESUME_STATUSES = [
   "pending_upload",
